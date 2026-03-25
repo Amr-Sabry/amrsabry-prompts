@@ -51,8 +51,8 @@ export default function Header() {
             </div>
           </div>
           <div>
-            <h1 style={{ fontSize: 17, fontWeight: 900, color: "#1e2130", letterSpacing: "-0.02em", lineHeight: 1 }}>
-              PromptLens
+            <h1 style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 14, fontWeight: 900, color: "#1e2130", letterSpacing: "0.04em", lineHeight: 1 }}>
+              AmrSabry-prompts
             </h1>
             <p style={{ fontSize: 9, color: "#8891a5", fontWeight: 500 }}>
               Extract · Edit · Save

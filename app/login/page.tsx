@@ -55,7 +55,7 @@ export default function LoginPage() {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: "#1e2130", marginBottom: 4 }}>PromptLens</h1>
+            <h1 style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 18, fontWeight: 900, color: "#1e2130", marginBottom: 4, letterSpacing: "0.04em" }}>AmrSabry-prompts</h1>
             <p style={{ fontSize: 12, color: "#8891a5" }}>Sign in to access your library</p>
           </div>
 

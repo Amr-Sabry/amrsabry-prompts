@@ -1,4 +1,4 @@
-/* PromptLens Library - Neumorphism Premium */
+/* AmrSabry-prompts Library - Neumorphism Premium */
 "use client";
 import { useState, useEffect } from "react";
 import { Search, X, Edit3, Copy, Wand2, Share2, Trash2 } from "lucide-react";
@@ -135,7 +135,7 @@ export default function LibraryPage() {
   };
 
   const handleShare = async (prompt: SavedPrompt) => {
-    const shareData = { title: "PromptLens", text: prompt.plainText };
+    const shareData = { title: "AmrSabry-prompts", text: prompt.plainText };
     if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
       try { await navigator.share(shareData); } catch {}
     } else {

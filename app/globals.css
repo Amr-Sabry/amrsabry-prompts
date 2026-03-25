@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
 /* ===== NEUMORPHISM TOKENS ===== */
@@ -55,6 +55,21 @@ body {
   align-items: center;
 }
 
+/* ── Orbitron: brand / logo headings only ── */
+.brand, h1.brand, h2.brand, h3.brand {
+  font-family: "Orbitron", sans-serif;
+}
+
+/* ── Standard headings (UI text) ── */
+h1 { font-family: "Outfit", sans-serif; font-weight: 800; }
+h2 { font-family: "Outfit", sans-serif; font-weight: 700; }
+h3 { font-family: "Outfit", sans-serif; font-weight: 700; }
+
+/* ── Code ── */
+code, pre, .mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
 /* ── UTILITY: centered page wrapper ── */
 .page-wrapper {
   width: 100%;
@@ -97,7 +112,7 @@ body {
   font-family: "Outfit", sans-serif; font-size: 13px; font-weight: 600;
   color: var(--text);
   background: var(--bg);
-  border-radius: 13px;
+  border-radius: 12px;
   box-shadow: 5px 5px 12px var(--sh-dark), -5px -5px 12px var(--sh-light);
   transition: box-shadow 0.15s ease, transform 0.1s ease;
   white-space: nowrap;
@@ -139,7 +154,7 @@ body {
 .neu-input {
   width: 100%; padding: 11px 16px; border: none; outline: none;
   font-family: "Outfit", sans-serif; font-size: 14px; font-weight: 500;
-  color: var(--text); background: var(--bg); border-radius: 13px;
+  color: var(--text); background: var(--bg); border-radius: 12px;
   box-shadow: inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light);
   transition: box-shadow 0.2s ease;
 }
@@ -148,7 +163,7 @@ body {
   box-shadow: inset 5px 5px 12px var(--sh-dark), inset -5px -5px 12px var(--sh-light), 0 0 0 2px var(--primary-glow);
 }
 textarea.neu-input {
-  resize: vertical; minHeight: 120px; line-height: 1.6;
+  resize: vertical; min-height: 120px; line-height: 1.6;
 }
 
 /* ===== BADGE ===== */
