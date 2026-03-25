@@ -22,8 +22,7 @@ function useImageDimensions(src: string) {
 function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   const imgSrc = prompt.imageThumbnail || "";
   const dims = useImageDimensions(imgSrc);
-  // aspect-ratio: "w/h" e.g. "1920/1080" for landscape, "1080/1920" for portrait
-  const aspectRatio = dims ? `${dims.w}/${dims.h}` : "16/9";
+  const renderedRatio = dims ? `${dims.w}/${dims.h}` : "3/2";
 
   if (!imgSrc) {
     return (
@@ -54,8 +53,8 @@ function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   }
 
   return (
-    <div style={{ position: "relative", borderRadius: "18px 18px 0 0", overflow: "hidden", background: "#c8cdd8" }}>
-      <div style={{ aspectRatio }}>
+    <div style={{ position: "relative", borderRadius: "18px 18px 0 0", overflow: "hidden", background: "#c8ccd6" }}>
+      <div style={{ aspectRatio: renderedRatio }}>
         <img
           src={imgSrc}
           alt="Prompt thumbnail"
@@ -148,9 +147,6 @@ export default function LibraryPage() {
         p.userName.toLowerCase().includes(search.toLowerCase())
       )
     : library;
-
-  const cardShadow = "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)";
-  const cardShadowHover = "12px 12px 28px rgba(163,177,198,0.8), -12px -12px 28px rgba(255,255,255,1)";
 
   return (
     <div style={{
@@ -268,9 +264,9 @@ export default function LibraryPage() {
               <div key={prompt.id} style={{
                 breakInside: "avoid",
                 marginBottom: "22px",
-                background: "#e8ecf4",
+                background: "#dde1ec",
                 borderRadius: 22,
-                boxShadow: cardShadow,
+                boxShadow: "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)",
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
@@ -279,14 +275,14 @@ export default function LibraryPage() {
               }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = cardShadowHover;
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "12px 12px 28px rgba(163,177,198,0.8), -12px -12px 28px rgba(255,255,255,1)";
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = cardShadow;
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)";
                 }}
               >
-                {/* ── IMAGE: natural aspect ratio, Pinterest style ── */}
+                {/* ── IMAGE ── */}
                 <ImageBlock prompt={prompt} />
 
                 {/* ── CONTENT ── */}
