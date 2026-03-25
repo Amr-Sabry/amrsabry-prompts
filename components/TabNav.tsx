@@ -7,16 +7,8 @@ export default function TabNav() {
   const pathname = usePathname();
 
   const tabs = [
-    {
-      href: "/",
-      label: "Extract",
-      icon: <Wand2 size={15} strokeWidth={2.2} />,
-    },
-    {
-      href: "/library",
-      label: "Library",
-      icon: <FolderOpen size={15} strokeWidth={2.2} />,
-    },
+    { href: "/", label: "Extract", icon: <Wand2 size={14} strokeWidth={2.5} /> },
+    { href: "/library", label: "Library", icon: <FolderOpen size={14} strokeWidth={2.5} /> },
   ];
 
   return (
@@ -24,11 +16,11 @@ export default function TabNav() {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
+        gap: 0,
         padding: "5px",
         borderRadius: "50px",
-        background: "rgba(255,255,255,0.06)",
-        border: "1px solid rgba(255,255,255,0.1)",
+        background: "#dde1ec",
+        boxShadow: "inset 4px 4px 10px rgba(163,177,198,0.6), inset -4px -4px 10px rgba(255,255,255,0.9)",
       }}
     >
       {tabs.map((tab) => {
@@ -46,26 +38,25 @@ export default function TabNav() {
               fontSize: "13px",
               fontWeight: active ? 800 : 600,
               fontFamily: "Outfit, sans-serif",
-              color: active ? "#ffffff" : "rgba(226,217,243,0.55)",
-              background: active ? "linear-gradient(135deg, #6d28d9, #7c3aed)" : "transparent",
+              color: active ? "#ffffff" : "#5c6478",
+              background: active
+                ? "linear-gradient(135deg, #7c3aed, #6d28d9)"
+                : "transparent",
               textDecoration: "none",
               transition: "all 0.25s ease",
               letterSpacing: "0.02em",
               boxShadow: active
-                ? "0 0 20px rgba(124,58,237,0.55), 0 0 40px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.15)"
+                ? "4px 4px 10px rgba(124,58,237,0.35), -3px -3px 8px rgba(255,255,255,0.9)"
                 : "none",
-              border: active ? "1px solid rgba(167,139,250,0.3)" : "1px solid transparent",
             }}
             onMouseEnter={(e) => {
               if (!active) {
-                (e.target as HTMLElement).style.color = "#e2d9f3";
-                (e.target as HTMLElement).style.background = "rgba(124,58,237,0.08)";
+                (e.target as HTMLElement).style.color = "#1e2130";
               }
             }}
             onMouseLeave={(e) => {
               if (!active) {
-                (e.target as HTMLElement).style.color = "rgba(226,217,243,0.55)";
-                (e.target as HTMLElement).style.background = "transparent";
+                (e.target as HTMLElement).style.color = "#5c6478";
               }
             }}
           >
