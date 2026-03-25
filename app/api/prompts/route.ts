@@ -26,6 +26,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const prompts = await req.json();
+    const payloadSize = JSON.stringify(prompts).length;
     const res = await fetch(GIST_URL, {
       method: "PATCH",
       headers: {
@@ -42,9 +43,14 @@ export async function POST(req: NextRequest) {
         },
       }),
     });
-    if (!res.ok) throw new Error("Failed to update gist");
-    return NextResponse.json({ ok: true });
-  } catch {
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Gist PATCH failed:", res.status, errorText);
+      return NextResponse.json({ ok: false, error: errorText, status: res.status }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, promptsCount: prompts.length, payloadSize });
+  } catch (err) {
+    console.error("Gist PATCH exception:", err);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }
