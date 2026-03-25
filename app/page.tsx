@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import CopyButton from "@/components/CopyButton";
 import Toast from "@/components/Toast";
-import { OCRResult, SavedPrompt } from "@/types/prompt";
+import { OCRResult } from "@/types/prompt";
 import { createWorker } from "tesseract.js";
 
 export default function ExtractPage() {
@@ -118,17 +118,24 @@ export default function ExtractPage() {
   const displayText = editingText ? editedText : (ocrResult?.plainText || "");
   const jsonOutput = ocrResult ? JSON.stringify({ text: displayText, language: ocrResult.language, confidence: Math.round(ocrResult.confidence * 100) / 100, format: "plain" }, null, 2) : "";
 
-  const cardShadow = "10px 10px 24px var(--sh-dark), -10px -10px 24px var(--sh-light)";
-  const insetShadow = "inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light)";
+  const cardShadow = "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)";
+  const insetShadow = "inset 4px 4px 10px rgba(163,177,198,0.6), inset -4px -4px 10px rgba(255,255,255,0.9)";
 
   return (
-    <div className="min-h-screen" style={{ background: "#dde1ec", fontFamily: "Outfit, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#dde1ec", fontFamily: "Outfit, sans-serif" }}>
 
       {/* ===== SHARED HEADER ===== */}
       <Header />
 
       {/* ===== MAIN ===== */}
-      <main className="max-w-5xl mx-auto px-6 py-12 flex flex-col gap-8">
+      <main style={{
+        maxWidth: 1100,
+        margin: "0 auto",
+        padding: "36px 24px 60px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 32,
+      }}>
 
         {/* Drop Zone */}
         <div
@@ -138,11 +145,11 @@ export default function ExtractPage() {
           onDrop={handleDrop}
           onClick={() => !isProcessing && document.getElementById("file-input")?.click()}
           style={{
-            background: "var(--bg)",
+            background: "#dde1ec",
             borderRadius: 28,
             boxShadow: dragActive
-              ? "inset 6px 6px 16px var(--sh-dark), inset -6px -6px 16px var(--sh-light), 0 0 0 2px var(--primary)"
-              : "inset 5px 5px 14px var(--sh-dark), inset -5px -5px 14px var(--sh-light)",
+              ? `${insetShadow}, 0 0 0 2px #7c3aed`
+              : insetShadow,
             cursor: isProcessing ? "not-allowed" : "pointer",
             padding: "56px 32px",
             display: "flex",
@@ -153,38 +160,42 @@ export default function ExtractPage() {
             userSelect: "none",
           }}
         >
-          <input id="file-input" type="file" accept="image/*" className="hidden" onChange={handleFileInput} />
+          <input id="file-input" type="file" accept="image/*" onChange={handleFileInput} style={{ display: "none" }} />
           <div style={{
             width: 72, height: 72, borderRadius: 20,
-            background: dragActive ? "linear-gradient(135deg, var(--primary), var(--primary-dark))" : "var(--bg)",
+            background: dragActive ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "#dde1ec",
             boxShadow: dragActive
-              ? "8px 8px 20px rgba(124,58,237,0.4), -4px -4px 10px var(--sh-light)"
-              : "8px 8px 18px var(--sh-dark), -8px -8px 18px var(--sh-light)",
+              ? "8px 8px 20px rgba(124,58,237,0.4), -4px -4px 10px rgba(255,255,255,0.9)"
+              : "8px 8px 18px rgba(163,177,198,0.72), -8px -8px 18px rgba(255,255,255,0.95)",
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all 0.2s ease",
           }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={dragActive ? "white" : "var(--primary)"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={dragActive ? "white" : "#7c3aed"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="16 16 12 12 8 16"/>
               <line x1="12" y1="12" x2="12" y2="21"/>
               <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
             </svg>
           </div>
           <div style={{ textAlign: "center" }}>
-            <p style={{ fontSize: 16, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#1e2130", marginBottom: 4 }}>
               {dragActive ? "Drop it!" : "Drop an image or click to browse"}
             </p>
-            <p style={{ fontSize: 12, color: "var(--text-soft)", fontWeight: 500 }}>PNG, JPG, WEBP, GIF, BMP</p>
+            <p style={{ fontSize: 12, color: "#8891a5", fontWeight: 500 }}>PNG, JPG, WEBP, GIF, BMP</p>
           </div>
         </div>
 
         {/* Image Preview */}
         {imageUrl && (
-          <div style={{ background: "var(--bg)", borderRadius: 28, boxShadow: cardShadow, padding: 24 }}>
-            <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "var(--bg-deep)" }}>
+          <div style={{ background: "#dde1ec", borderRadius: 28, boxShadow: cardShadow, padding: 24 }}>
+            <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "#c8ccd6" }}>
               <img src={imageUrl} alt="Uploaded" style={{ width: "100%", maxHeight: 400, objectFit: "contain", display: "block", margin: "0 auto" }} />
               <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8 }}>
-                <button onClick={handleClear} style={{ width: 36, height: 36, borderRadius: 10, background: "var(--bg)", border: "none", cursor: "pointer", boxShadow: "4px 4px 10px var(--sh-dark), -4px -4px 10px var(--sh-light)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <X size={14} strokeWidth={2.5} color="var(--text-muted)" />
+                <button onClick={handleClear} style={{
+                  width: 36, height: 36, borderRadius: 10, background: "#dde1ec", border: "none", cursor: "pointer",
+                  boxShadow: "4px 4px 10px rgba(163,177,198,0.6), -4px -4px 10px rgba(255,255,255,0.9)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <X size={14} strokeWidth={2.5} color="#8891a5" />
                 </button>
               </div>
             </div>
@@ -193,11 +204,11 @@ export default function ExtractPage() {
 
         {/* Processing */}
         {isProcessing && (
-          <div style={{ background: "var(--bg)", borderRadius: 20, boxShadow: insetShadow, padding: "24px 28px", display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 22, height: 22, borderRadius: "50%", border: "2.5px solid rgba(124,58,237,0.2)", borderTopColor: "var(--primary)", animation: "spin 0.7s linear infinite", flexShrink: 0 }} />
+          <div style={{ background: "#dde1ec", borderRadius: 20, boxShadow: insetShadow, padding: "24px 28px", display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ width: 22, height: 22, borderRadius: "50%", border: "2.5px solid rgba(124,58,237,0.2)", borderTopColor: "#7c3aed", animation: "spin 0.7s linear infinite", flexShrink: 0 }} />
             <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "var(--text)" }}>Recognizing text...</p>
-              <p style={{ fontSize: 11, color: "var(--text-soft)", marginTop: 3 }}>Powered by Tesseract.js — runs locally in your browser</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#1e2130" }}>Recognizing text...</p>
+              <p style={{ fontSize: 11, color: "#8891a5", marginTop: 3 }}>Powered by Tesseract.js — runs locally in your browser</p>
             </div>
           </div>
         )}
@@ -207,25 +218,37 @@ export default function ExtractPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
             {/* Plain Text */}
-            <div style={{ background: "var(--bg)", borderRadius: 28, boxShadow: cardShadow, padding: 28 }}>
+            <div style={{ background: "#dde1ec", borderRadius: 28, boxShadow: cardShadow, padding: 28 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)" }}>Plain Text</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", fontSize: 10, fontWeight: 700, borderRadius: 20, background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", color: "white", boxShadow: "2px 2px 6px rgba(124,58,237,0.3)" }}>{ocrResult.language.toUpperCase()}</span>
-                  <span style={{ fontSize: 11, color: "var(--text-soft)" }}>{Math.round(ocrResult.confidence * 100)}% conf.</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#5c6478" }}>Plain Text</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", fontSize: 10, fontWeight: 700, borderRadius: 20, background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white", boxShadow: "2px 2px 6px rgba(124,58,237,0.3)" }}>{ocrResult.language.toUpperCase()}</span>
+                  <span style={{ fontSize: 11, color: "#8891a5" }}>{Math.round(ocrResult.confidence * 100)}% conf.</span>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {editingText ? (
                     <>
-                      <button onClick={handleSaveEdit} className="neu-btn neu-btn-sm" style={{ color: "var(--success)", gap: 5 }}>
+                      <button onClick={handleSaveEdit} style={{
+                        display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 11, border: "none", cursor: "pointer",
+                        background: "#dde1ec", color: "#16a34a", fontSize: 11, fontWeight: 700, fontFamily: "Outfit, sans-serif",
+                        boxShadow: "3px 3px 8px rgba(163,177,198,0.6), -3px -3px 8px rgba(255,255,255,0.9)",
+                      }}>
                         <Check size={12} strokeWidth={2.5} /> Save
                       </button>
-                      <button onClick={handleRevert} className="neu-btn neu-btn-sm" style={{ gap: 5 }}>
+                      <button onClick={handleRevert} style={{
+                        display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 11, border: "none", cursor: "pointer",
+                        background: "#dde1ec", color: "#1e2130", fontSize: 11, fontWeight: 700, fontFamily: "Outfit, sans-serif",
+                        boxShadow: "3px 3px 8px rgba(163,177,198,0.6), -3px -3px 8px rgba(255,255,255,0.9)",
+                      }}>
                         <RotateCcw size={11} strokeWidth={2} /> Revert
                       </button>
                     </>
                   ) : (
-                    <button onClick={() => { setEditingText(true); setEditedText(ocrResult.plainText); }} className="neu-btn neu-btn-sm" style={{ gap: 5 }}>
+                    <button onClick={() => { setEditingText(true); setEditedText(ocrResult.plainText); }} style={{
+                      display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 11, border: "none", cursor: "pointer",
+                      background: "#dde1ec", color: "#1e2130", fontSize: 11, fontWeight: 700, fontFamily: "Outfit, sans-serif",
+                      boxShadow: "3px 3px 8px rgba(163,177,198,0.6), -3px -3px 8px rgba(255,255,255,0.9)",
+                    }}>
                       <Edit3 size={11} strokeWidth={2} /> Edit Text
                     </button>
                   )}
@@ -234,30 +257,49 @@ export default function ExtractPage() {
               </div>
 
               {editingText ? (
-                <textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="neu-input" rows={8} style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 13, lineHeight: 1.7 }} />
+                <textarea value={editedText} onChange={(e) => setEditedText(e.target.value)}
+                  style={{
+                    width: "100%", padding: "14px 16px", borderRadius: 16, border: "none", outline: "none",
+                    background: "#dde1ec", color: "#1e2130", fontSize: 13, lineHeight: 1.7,
+                    boxShadow: insetShadow, fontFamily: "JetBrains Mono, monospace", resize: "vertical",
+                  }}
+                  rows={8}
+                />
               ) : (
-                <div style={{ background: "var(--bg)", borderRadius: 16, boxShadow: insetShadow, padding: 20 }}>
-                  <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 13, color: "var(--text)", lineHeight: 1.75, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                    {ocrResult.plainText || <span style={{ color: "var(--text-soft)", fontStyle: "italic" }}>No text detected. Try a clearer image.</span>}
+                <div style={{ background: "#dde1ec", borderRadius: 16, boxShadow: insetShadow, padding: 20 }}>
+                  <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 13, color: "#1e2130", lineHeight: 1.75, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    {ocrResult.plainText || <span style={{ color: "#8891a5", fontStyle: "italic" }}>No text detected. Try a clearer image.</span>}
                   </p>
                 </div>
               )}
             </div>
 
             {/* JSON */}
-            <div style={{ background: "var(--bg)", borderRadius: 28, boxShadow: cardShadow, padding: 28 }}>
+            <div style={{ background: "#dde1ec", borderRadius: 28, boxShadow: cardShadow, padding: 28 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)" }}>JSON Format</span>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#5c6478" }}>JSON Format</span>
                 <CopyButton onCopy={() => navigator.clipboard.writeText(jsonOutput)} />
               </div>
-              <div style={{ background: "var(--mono-bg)", borderRadius: 16, borderLeft: "3px solid var(--secondary)", padding: 20, fontFamily: "JetBrains Mono, monospace", fontSize: 12, color: "var(--text)", lineHeight: 1.7, overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word", boxShadow: "inset 3px 3px 8px rgba(163,177,198,0.5), inset -3px -3px 8px rgba(255,255,255,0.65)" }}>
+              <div style={{
+                background: "#c8ccd6", borderRadius: 16,
+                borderLeft: "3px solid #0891b2",
+                padding: 20, fontFamily: "JetBrains Mono, monospace", fontSize: 12, color: "#1e2130",
+                lineHeight: 1.7, overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word",
+                boxShadow: insetShadow,
+              }}>
                 <pre style={{ margin: 0 }}>{jsonOutput}</pre>
               </div>
             </div>
 
             {/* Save Button */}
             {displayText && (
-              <button onClick={handleSave} className="neu-btn neu-btn-primary" style={{ width: "100%", justifyContent: "center", padding: 18, fontSize: 15, borderRadius: 20, gap: 10 }}>
+              <button onClick={handleSave} style={{
+                width: "100%", padding: 18, borderRadius: 20, border: "none", cursor: "pointer",
+                background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white",
+                fontSize: 15, fontWeight: 700, fontFamily: "Outfit, sans-serif",
+                boxShadow: "5px 5px 16px rgba(124,58,237,0.35), -3px -3px 8px rgba(255,255,255,0.8)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                   <polyline points="17 21 17 13 7 13 7 21"/>
