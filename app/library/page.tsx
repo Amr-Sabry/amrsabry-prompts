@@ -168,71 +168,145 @@ export default function LibraryPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)", fontFamily: "Outfit, sans-serif" }}>
 
-      {/* ── HEADER ── */}
+      {/* ── PREMIUM HEADER ── */}
       <header style={{
         position: "sticky", top: 0, zIndex: 40,
-        background: "rgba(221,225,236,0.92)", backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(163,177,198,0.3)",
+        background: "rgba(221,225,236,0.88)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderBottom: "1px solid rgba(255,255,255,0.6)",
+        boxShadow: "0 4px 30px rgba(124,58,237,0.06), 0 1px 0 rgba(163,177,198,0.2)",
       }}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap: 16px">
+
+          {/* Logo + Title */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+            {/* Animated gradient icon */}
             <div style={{
-              width: 44, height: 44, borderRadius: 14,
-              background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
-              boxShadow: "5px 5px 14px rgba(124,58,237,0.35), -3px -3px 8px rgba(255,255,255,0.8)",
+              width: 48, height: 48, borderRadius: 16,
+              background: "linear-gradient(135deg, #7c3aed, #4f46e5, #7c3aed)",
+              backgroundSize: "200% 200%",
+              animation: "logoShimmer 3s ease infinite",
+              boxShadow: "6px 6px 20px rgba(124,58,237,0.45), -4px -4px 12px rgba(255,255,255,0.9), inset 0 1px 0 rgba(255,255,255,0.4)",
               display: "flex", alignItems: "center", justifyContent: "center",
+              position: "relative", overflow: "hidden",
             }}>
-              <Wand2 size={18} color="white" strokeWidth={1.8} />
+              <Wand2 size={20} color="white" strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
+              {/* Shine sweep */}
+              <div style={{
+                position: "absolute", top: 0, left: "-75%",
+                width: "50%", height: "100%",
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+                animation: "shine 2.5s ease infinite",
+              }} />
             </div>
+
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>Library</h1>
-              <p style={{ fontSize: 10, color: "var(--text-soft)" }}>
-                {library.length} prompt{library.length !== 1 ? "s" : ""} saved
-              </p>
+              <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1 }}>
+                PromptLens
+              </h1>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <span style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: "#22c55e",
+                  boxShadow: "0 0 8px rgba(34,197,94,0.7)",
+                  display: "inline-block",
+                  animation: "pulse 2s ease infinite",
+                }} />
+                <p style={{ fontSize: 10, color: "var(--text-soft)", fontWeight: 500 }}>
+                  {library.length} prompt{library.length !== 1 ? "s" : ""} saved
+                </p>
+              </div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+          {/* Right side: auth pill + tab nav */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+            {/* Auth pill — glassmorphism */}
             {session ? (
-              <>
-                <span style={{
-                  fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                  background: session.user.role === "admin"
-                    ? "linear-gradient(135deg, var(--primary), var(--primary-dark))"
-                    : "var(--bg)",
-                  color: session.user.role === "admin" ? "white" : "var(--text-muted)",
-                  boxShadow: session.user.role !== "admin"
-                    ? "2px 2px 6px var(--sh-dark), -2px -2px 6px var(--sh-light)"
-                    : "2px 2px 6px rgba(124,58,237,0.3)",
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "6px 6px 6px 14px",
+                borderRadius: "50px",
+                background: "rgba(255,255,255,0.25)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: "1px solid rgba(255,255,255,0.55)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.6)",
+              }}>
+                {/* Avatar */}
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 800, color: "white",
+                  boxShadow: "0 2px 8px rgba(124,58,237,0.4)",
+                  flexShrink: 0,
                 }}>
-                  {session.user.role.toUpperCase()}
+                  {(session.user.username || "U")[0].toUpperCase()}
+                </div>
+
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", letterSpacing: "0.01em" }}>
+                  @{session.user.username}
                 </span>
-                <span style={{ fontSize: 11, color: "var(--text-soft)" }}>@{session.user.username}</span>
+
                 {session.user.role === "admin" && (
                   <a href="/admin" style={{
-                    fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                    background: "var(--bg)", color: "var(--text-muted)", textDecoration: "none",
-                    boxShadow: "2px 2px 6px var(--sh-dark), -2px -2px 6px var(--sh-light)",
-                  }}>Admin</a>
+                    fontSize: 9, fontWeight: 800, padding: "3px 10px", borderRadius: 20,
+                    background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                    color: "white", textDecoration: "none", letterSpacing: "0.05em",
+                    boxShadow: "2px 2px 8px rgba(124,58,237,0.4)",
+                  }}>ADMIN</a>
                 )}
+
                 <button onClick={() => signOut({ callbackUrl: "/login" })} style={{
-                  fontSize: 10, fontWeight: 600, padding: "5px 12px", borderRadius: 12,
+                  fontSize: 9, fontWeight: 700, padding: "5px 12px", borderRadius: 20,
                   border: "none", cursor: "pointer",
-                  background: "var(--bg)", color: "var(--text-muted)",
-                  boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                }}>Logout</button>
-              </>
+                  background: "rgba(255,255,255,0.5)",
+                  color: "var(--text-muted)",
+                  backdropFilter: "blur(8px)",
+                  boxShadow: "inset 1px 1px 3px rgba(0,0,0,0.08)",
+                  letterSpacing: "0.04em",
+                  transition: "all 0.2s",
+                }}
+                  onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(220,38,38,0.1)"; (e.target as HTMLButtonElement).style.color = "#dc2626"; }}
+                  onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(255,255,255,0.5)"; (e.target as HTMLButtonElement).style.color = "var(--text-muted)"; }}
+                >Logout</button>
+              </div>
             ) : (
               <a href="/login" style={{
-                fontSize: 10, fontWeight: 700, padding: "5px 14px", borderRadius: 12,
-                textDecoration: "none",
-                background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                fontSize: 11, fontWeight: 800, padding: "8px 20px", borderRadius: 50,
+                textDecoration: "none", letterSpacing: "0.05em",
+                background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
                 color: "white",
-                boxShadow: "3px 3px 8px rgba(124,58,237,0.3)",
-              }}>Login</a>
+                boxShadow: "5px 5px 16px rgba(124,58,237,0.4), -3px -3px 8px rgba(255,255,255,0.8), inset 0 1px 0 rgba(255,255,255,0.25)",
+                transition: "all 0.2s",
+              }}
+                onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.transform = "translateY(-1px)"; (e.target as HTMLAnchorElement).style.boxShadow = "7px 7px 20px rgba(124,58,237,0.5), -4px -4px 10px rgba(255,255,255,0.9)"; }}
+                onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.transform = "translateY(0)"; (e.target as HTMLAnchorElement).style.boxShadow = "5px 5px 16px rgba(124,58,237,0.4), -3px -3px 8px rgba(255,255,255,0.8)"; }}
+              >Sign in</a>
             )}
+
+            {/* TabNav — glass pill */}
             <TabNav />
           </div>
         </div>
+
+        {/* CSS Animations */}
+        <style>{`
+          @keyframes logoShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+          }
+          @keyframes shine {
+            0% { left: -75%; }
+            100% { left: 150%; }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+          }
+        `}</style>
       </header>
 
       {/* ── MAIN ── */}
