@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { Wand2 } from "lucide-react";
+import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import TabNav from "@/components/TabNav";
 import CopyButton from "@/components/CopyButton";

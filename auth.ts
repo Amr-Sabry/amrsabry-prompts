@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthConfig } from "next-auth";
+import NextAuth, { NextAuthConfig, User } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 const ADMIN_USER = {
@@ -15,6 +15,10 @@ declare module "next-auth" {
       username: string;
       role: "admin" | "user";
     };
+  }
+  interface User {
+    username?: string;
+    role?: string;
   }
 }
 
@@ -33,12 +37,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (
           credentials.username === ADMIN_USER.username &&
           credentials.password === ADMIN_USER.password
         ) {
-          return { id: ADMIN_USER.id, name: ADMIN_USER.username, role: ADMIN_USER.role };
+          return { id: ADMIN_USER.id, name: ADMIN_USER.username, username: ADMIN_USER.username, role: ADMIN_USER.role };
         }
         // Check registered users from Gist
         try {
@@ -51,8 +55,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const bcrypt = await import("bcryptjs");
             for (const user of users) {
               if (user.username === credentials.username) {
-                const valid = await bcrypt.compare(credentials.password, user.passwordHash);
-                if (valid) return { id: user.id, name: user.username, role: user.role || "user" };
+                const valid = await bcrypt.compare(String(credentials.password), user.passwordHash);
+                if (valid) return { id: user.id, name: user.username, username: user.username, role: user.role || "user" };
               }
             }
           }
@@ -65,13 +69,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = (user as any).id;
-        token.username = (user as any).name;
+        token.username = (user as any).username || (user as any).name;
         token.role = (user as any).role;
       }
       return token;
     },
     session({ session, token }) {
-      session.user = { id: token.id, username: token.username, role: token.role };
+      (session.user as any).id = token.id;
+      (session.user as any).username = token.username;
+      (session.user as any).role = token.role;
       return session;
     },
   },
