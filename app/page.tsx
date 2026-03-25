@@ -1,8 +1,8 @@
 "use client";
 import { useState, useCallback } from "react";
 import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
-import TabNav from "@/components/TabNav";
+import { useSession } from "next-auth/react";
+import Header from "@/components/Header";
 import CopyButton from "@/components/CopyButton";
 import Toast from "@/components/Toast";
 import { OCRResult, SavedPrompt } from "@/types/prompt";
@@ -122,48 +122,10 @@ export default function ExtractPage() {
   const insetShadow = "inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light)";
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)", fontFamily: "Outfit, sans-serif" }}>
+    <div className="min-h-screen" style={{ background: "#dde1ec", fontFamily: "Outfit, sans-serif" }}>
 
-      {/* ===== STICKY HEADER ===== */}
-      <header style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(221,225,236,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(163,177,198,0.3)" }}>
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", boxShadow: "5px 5px 14px rgba(124,58,237,0.3), -3px -3px 8px rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Wand2 size={18} color="white" strokeWidth={1.8} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: 17, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.3px" }}>AmrSabry-prompts</h1>
-              <p style={{ fontSize: 10, color: "var(--text-soft)", fontWeight: 500, letterSpacing: "0.02em" }}>Extract • Edit • Save</p>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  {session ? (
-                    <>
-                      <span style={{
-                        fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
-                        background: session.user.role === "admin"
-                          ? "linear-gradient(135deg, var(--primary), var(--primary-dark))"
-                          : "var(--bg)",
-                        color: session.user.role === "admin" ? "white" : "var(--text-muted)",
-                        boxShadow: session.user.role !== "admin"
-                          ? "2px 2px 6px var(--sh-dark), -2px -2px 6px var(--sh-light)"
-                          : "2px 2px 6px rgba(124,58,237,0.3)",
-                      }}>
-                        {session.user.role.toUpperCase()}
-                      </span>
-                      <span style={{ fontSize: 11, color: "var(--text-soft)" }}>@{session.user.username}</span>
-                      {session.user.role === "admin" && (
-                        <a href="/admin" style={{ fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "var(--bg)", color: "var(--text-muted)", textDecoration: "none", boxShadow: "2px 2px 6px var(--sh-dark), -2px -2px 6px var(--sh-light)" }}>Admin</a>
-                      )}
-                      <button onClick={() => signOut({ callbackUrl: "/login" })} className="neu-btn neu-btn-sm" style={{ fontSize: 10, padding: "5px 10px" }}>Logout</button>
-                    </>
-                  ) : (
-                    <a href="/login" className="neu-btn neu-btn-sm" style={{ fontSize: 10, padding: "5px 10px", textDecoration: "none" }}>Login</a>
-                  )}
-                  <TabNav />
-                </div>
-        </div>
-      </header>
+      {/* ===== SHARED HEADER ===== */}
+      <Header />
 
       {/* ===== MAIN ===== */}
       <main className="max-w-5xl mx-auto px-6 py-12 flex flex-col gap-8">
