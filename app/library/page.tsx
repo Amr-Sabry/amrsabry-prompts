@@ -1,3 +1,4 @@
+/* PromptLens Library - Built with ❤️ by AmrSabry-Ai */
 "use client";
 import { useState, useEffect } from "react";
 import { Search, X, Edit3, Copy, Wand2 } from "lucide-react";
