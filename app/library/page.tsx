@@ -345,7 +345,7 @@ export default function LibraryPage() {
                 <div style={{ padding: "14px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
 
                   {/* Meta row */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 10 }}>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <span style={{
                         fontSize: 9, fontWeight: 700, padding: "2px 9px", borderRadius: 20,
@@ -354,17 +354,14 @@ export default function LibraryPage() {
                       }}>
                         {prompt.language.toUpperCase()}
                       </span>
-                      <span style={{ fontSize: 9, color: "var(--text-soft)", fontWeight: 500 }}>
-                        @{prompt.userName || "guest"}
-                      </span>
                     </div>
-                    <span style={{ fontSize: 9, color: "var(--text-soft)" }}>
-                      {new Date(prompt.createdAt).toLocaleDateString()}
+                    <span style={{ fontSize: 9, color: "var(--text-soft)", fontWeight: 500 }}>
+                      @{prompt.userName || "guest"} · {new Date(prompt.createdAt).toLocaleDateString()}
                     </span>
                   </div>
 
                   {/* Prompt text */}
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, textAlign: "center" }}>
                     <p style={{
                       fontFamily: "JetBrains Mono, monospace",
                       fontSize: 10.5,
@@ -376,6 +373,7 @@ export default function LibraryPage() {
                       display: "-webkit-box",
                       WebkitLineClamp: 7,
                       WebkitBoxOrient: "vertical",
+                      textAlign: "center",
                     }}>
                       {prompt.plainText}
                     </p>
