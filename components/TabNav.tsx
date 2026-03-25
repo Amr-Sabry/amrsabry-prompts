@@ -15,40 +15,13 @@ export default function TabNav() {
       style={{
         position: "relative",
         display: "inline-flex",
-        padding: "5px",
+        padding: "4px",
         borderRadius: "50px",
-        background: "rgba(255,255,255,0.08)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.15)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(124,58,237,0.18)",
+        gap: "2px",
       }}
     >
-      {/* Active tab sliding indicator */}
-      {tabs.map((tab) => {
-        const active = pathname === tab.href;
-        if (!active) return null;
-        return (
-          <div
-            key={tab.href}
-            style={{
-              position: "absolute",
-              top: "5px",
-              left: "5px",
-              width: `calc(50% - 5px)`,
-              height: "calc(100% - 10px)",
-              borderRadius: "50px",
-              background: "linear-gradient(135deg, #7c3aed, #4f46e5, #7c3aed)",
-              backgroundSize: "200% 200%",
-              animation: "tabShimmer 3s ease infinite",
-              boxShadow: "0 4px 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.3)",
-              transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-              zIndex: 0,
-            }}
-          />
-        );
-      })}
-
       {tabs.map((tab) => {
         const active = pathname === tab.href;
         return (
@@ -56,37 +29,29 @@ export default function TabNav() {
             key={tab.href}
             href={tab.href}
             style={{
-              position: "relative",
-              zIndex: 1,
-              padding: "9px 28px",
+              padding: "7px 22px",
               borderRadius: "50px",
-              fontSize: "13px",
+              fontSize: "12px",
               fontWeight: active ? 800 : 500,
-              fontFamily: "Plus Jakarta Sans, sans-serif",
-              color: active ? "#ffffff" : "rgba(255,255,255,0.65)",
+              fontFamily: "Outfit, sans-serif",
+              color: active ? "#ffffff" : "rgba(226,217,243,0.5)",
+              background: active ? "linear-gradient(135deg, #6d28d9, #7c3aed)" : "transparent",
               textDecoration: "none",
-              transition: "all 0.3s ease",
+              transition: "all 0.25s ease",
               letterSpacing: "0.02em",
-              textShadow: active ? "0 1px 8px rgba(124,58,237,0.8)" : "none",
+              boxShadow: active ? "0 0 16px rgba(124,58,237,0.5), 0 0 30px rgba(124,58,237,0.2)" : "none",
             }}
             onMouseEnter={(e) => {
-              if (!active) (e.target as HTMLElement).style.color = "#ffffff";
+              if (!active) (e.target as HTMLElement).style.color = "#e2d9f3";
             }}
             onMouseLeave={(e) => {
-              if (!active) (e.target as HTMLElement).style.color = "rgba(255,255,255,0.65)";
+              if (!active) (e.target as HTMLElement).style.color = "rgba(226,217,243,0.5)";
             }}
           >
             {tab.label}
           </Link>
         );
       })}
-
-      <style>{`
-        @keyframes tabShimmer {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-      `}</style>
     </div>
   );
 }

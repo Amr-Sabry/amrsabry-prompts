@@ -1,4 +1,4 @@
-/* PromptLens Library - Pinterest Masonry Style */
+/* PromptLens Library - Dark Glassmorphism Premium */
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Search, X, Edit3, Copy, Wand2, Share2, Trash2 } from "lucide-react";
@@ -8,7 +8,6 @@ import Toast from "@/components/Toast";
 import EditModal from "@/components/EditModal";
 import { SavedPrompt } from "@/types/prompt";
 
-// Extracts natural dimensions from a base64 or URL image
 function useImageDimensions(src: string) {
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   useEffect(() => {
@@ -23,60 +22,49 @@ function useImageDimensions(src: string) {
 function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   const imgSrc = prompt.imageThumbnail || "";
   const dims = useImageDimensions(imgSrc);
+  const aspectRatio = dims ? dims.h / dims.w : 0.5625;
 
-  // No image → gradient placeholder
   if (!imgSrc) {
     return (
       <div style={{
-        background: "linear-gradient(135deg, var(--primary-dark), var(--primary))",
-        padding: "24px 10px 0",
+        background: "linear-gradient(135deg, #6d28d9, #7c3aed, #a78bfa)",
+        borderRadius: "18px 18px 0 0",
+        height: 160,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
       }}>
-        <div style={{
-          borderRadius: "18px 18px 0 0",
-          height: 80,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
-          <Wand2 size={28} color="rgba(255,255,255,0.35)" strokeWidth={1.5} />
-        </div>
+        {/* Decorative dots */}
+        {[...Array(5)].map((_, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            width: 4, height: 4, borderRadius: "50%",
+            background: "rgba(255,255,255,0.3)",
+            left: `${15 + i * 18}%`,
+            top: `${20 + (i % 2) * 15}%`,
+          }} />
+        ))}
+        {/* Decorative lines */}
+        <div style={{ position: "absolute", bottom: 20, left: 20, right: 20, height: 1, background: "rgba(255,255,255,0.1)" }} />
+        <div style={{ position: "absolute", bottom: 28, left: 20, right: 60, height: 1, background: "rgba(255,255,255,0.06)" }} />
+        <Wand2 size={32} color="rgba(255,255,255,0.25)" strokeWidth={1.5} />
       </div>
     );
   }
 
-  // Calculate aspect-ratio–constrained height
-  // Wider than 600px → constrain to 600, else natural width
-  const maxW = 600;
-  const aspectRatio = dims ? dims.h / dims.w : 0.625; // default 16:10
-  const renderedW = dims ? Math.min(dims.w, maxW) : maxW;
-  const renderedH = Math.round(renderedW * aspectRatio);
-
   return (
-    <div style={{
-      background: "#e8e8f0",
-      padding: "10px 10px 0",
-    }}>
+    <div style={{ position: "relative", borderRadius: "18px 18px 0 0", overflow: "hidden" }}>
       <div style={{
-        borderRadius: "18px 18px 0 0",
-        overflow: "hidden",
-        background: "var(--bg-deep)",
-        // Dynamic aspect-ratio container — enforces Pinterest ratio
-        aspectRatio: dims ? `${renderedW}/${renderedH}` : "auto",
-        height: dims ? undefined : 200,
+        aspectRatio: `1/${aspectRatio}`,
+        maxHeight: 220,
       }}>
         <img
           src={imgSrc}
           alt={`Prompt thumbnail`}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-            borderRadius: "18px 18px 0 0",
-          }}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       </div>
     </div>
@@ -166,173 +154,163 @@ export default function LibraryPage() {
     : library;
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)", fontFamily: "Outfit, sans-serif" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(160deg, #0e0b1f 0%, #1a0f2e 40%, #0f0b22 100%)",
+      fontFamily: "Outfit, sans-serif",
+      color: "#e2d9f3",
+    }}>
 
-      {/* ── PREMIUM HEADER ── */}
+      {/* ── DARK HEADER ── */}
       <header style={{
         position: "sticky", top: 0, zIndex: 40,
-        background: "rgba(221,225,236,0.88)",
+        background: "rgba(14,11,31,0.85)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
-        borderBottom: "1px solid rgba(255,255,255,0.6)",
-        boxShadow: "0 4px 30px rgba(124,58,237,0.06), 0 1px 0 rgba(163,177,198,0.2)",
+        borderBottom: "1px solid rgba(124,58,237,0.2)",
+        boxShadow: "0 4px 30px rgba(124,58,237,0.1)",
       }}>
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap: 16px">
+        <div style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "14px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+        }}>
 
-          {/* Logo + Title */}
-          <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-            {/* Animated gradient icon */}
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
-              width: 48, height: 48, borderRadius: 16,
-              background: "linear-gradient(135deg, #7c3aed, #4f46e5, #7c3aed)",
-              backgroundSize: "200% 200%",
-              animation: "logoShimmer 3s ease infinite",
-              boxShadow: "6px 6px 20px rgba(124,58,237,0.45), -4px -4px 12px rgba(255,255,255,0.9), inset 0 1px 0 rgba(255,255,255,0.4)",
+              width: 42, height: 42, borderRadius: 12,
+              background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
+              boxShadow: "0 0 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
               display: "flex", alignItems: "center", justifyContent: "center",
               position: "relative", overflow: "hidden",
             }}>
-              <Wand2 size={20} color="white" strokeWidth={2} style={{ position: "relative", zIndex: 1 }} />
-              {/* Shine sweep */}
+              <Wand2 size={18} color="white" strokeWidth={2} />
+              {/* Glow ring */}
               <div style={{
-                position: "absolute", top: 0, left: "-75%",
-                width: "50%", height: "100%",
-                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
-                animation: "shine 2.5s ease infinite",
+                position: "absolute", inset: -2,
+                borderRadius: 14,
+                background: "linear-gradient(135deg, rgba(124,58,237,0.4), transparent)",
+                animation: "glowPulse 2s ease infinite",
               }} />
             </div>
-
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1 }}>
+              <h1 style={{ fontSize: 18, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.01em", lineHeight: 1 }}>
                 PromptLens
               </h1>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: "#22c55e",
-                  boxShadow: "0 0 8px rgba(34,197,94,0.7)",
-                  display: "inline-block",
-                  animation: "pulse 2s ease infinite",
-                }} />
-                <p style={{ fontSize: 10, color: "var(--text-soft)", fontWeight: 500 }}>
-                  {library.length} prompt{library.length !== 1 ? "s" : ""} saved
-                </p>
-              </div>
+              <p style={{ fontSize: 10, color: "rgba(226,217,243,0.45)", fontWeight: 500 }}>
+                {library.length} prompt{library.length !== 1 ? "s" : ""} saved
+              </p>
             </div>
           </div>
 
-          {/* Right side: auth pill + tab nav */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-            {/* Auth pill — glassmorphism */}
+          {/* Right side */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {session ? (
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
-                padding: "6px 6px 6px 14px",
+                padding: "5px 6px 5px 14px",
                 borderRadius: "50px",
-                background: "rgba(255,255,255,0.25)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(255,255,255,0.55)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.6)",
+                background: "rgba(124,58,237,0.08)",
+                border: "1px solid rgba(124,58,237,0.18)",
               }}>
-                {/* Avatar */}
                 <div style={{
-                  width: 30, height: 30, borderRadius: "50%",
-                  background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 11, fontWeight: 800, color: "white",
-                  boxShadow: "0 2px 8px rgba(124,58,237,0.4)",
-                  flexShrink: 0,
+                  boxShadow: "0 0 10px rgba(124,58,237,0.4)",
                 }}>
                   {(session.user.username || "U")[0].toUpperCase()}
                 </div>
-
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", letterSpacing: "0.01em" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(226,217,243,0.8)" }}>
                   @{session.user.username}
                 </span>
-
                 {session.user.role === "admin" && (
                   <a href="/admin" style={{
-                    fontSize: 9, fontWeight: 800, padding: "3px 10px", borderRadius: 20,
-                    background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                    fontSize: 9, fontWeight: 800, padding: "2px 9px", borderRadius: 20,
+                    background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
                     color: "white", textDecoration: "none", letterSpacing: "0.05em",
-                    boxShadow: "2px 2px 8px rgba(124,58,237,0.4)",
+                    boxShadow: "0 0 12px rgba(124,58,237,0.4)",
                   }}>ADMIN</a>
                 )}
-
                 <button onClick={() => signOut({ callbackUrl: "/login" })} style={{
-                  fontSize: 9, fontWeight: 700, padding: "5px 12px", borderRadius: 20,
-                  border: "none", cursor: "pointer",
-                  background: "rgba(255,255,255,0.5)",
-                  color: "var(--text-muted)",
-                  backdropFilter: "blur(8px)",
-                  boxShadow: "inset 1px 1px 3px rgba(0,0,0,0.08)",
-                  letterSpacing: "0.04em",
+                  fontSize: 9, fontWeight: 700, padding: "4px 11px", borderRadius: 20,
+                  border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer",
+                  background: "rgba(255,255,255,0.05)", color: "rgba(226,217,243,0.55)",
                   transition: "all 0.2s",
                 }}
-                  onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(220,38,38,0.1)"; (e.target as HTMLButtonElement).style.color = "#dc2626"; }}
-                  onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(255,255,255,0.5)"; (e.target as HTMLButtonElement).style.color = "var(--text-muted)"; }}
+                  onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = "#f87171"; (e.target as HTMLButtonElement).style.borderColor = "rgba(248,113,113,0.3)"; }}
+                  onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = "rgba(226,217,243,0.55)"; (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.08)"; }}
                 >Logout</button>
               </div>
             ) : (
               <a href="/login" style={{
-                fontSize: 11, fontWeight: 800, padding: "8px 20px", borderRadius: 50,
+                fontSize: 11, fontWeight: 800, padding: "7px 18px", borderRadius: 50,
                 textDecoration: "none", letterSpacing: "0.05em",
-                background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
+                background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
                 color: "white",
-                boxShadow: "5px 5px 16px rgba(124,58,237,0.4), -3px -3px 8px rgba(255,255,255,0.8), inset 0 1px 0 rgba(255,255,255,0.25)",
-                transition: "all 0.2s",
-              }}
-                onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.transform = "translateY(-1px)"; (e.target as HTMLAnchorElement).style.boxShadow = "7px 7px 20px rgba(124,58,237,0.5), -4px -4px 10px rgba(255,255,255,0.9)"; }}
-                onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.transform = "translateY(0)"; (e.target as HTMLAnchorElement).style.boxShadow = "5px 5px 16px rgba(124,58,237,0.4), -3px -3px 8px rgba(255,255,255,0.8)"; }}
-              >Sign in</a>
+                boxShadow: "0 0 20px rgba(124,58,237,0.4), 0 0 40px rgba(124,58,237,0.15)",
+              }}>Sign in</a>
             )}
-
-            {/* TabNav — glass pill */}
             <TabNav />
           </div>
         </div>
-
-        {/* CSS Animations */}
         <style>{`
-          @keyframes logoShimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-          }
-          @keyframes shine {
-            0% { left: -75%; }
-            100% { left: 150%; }
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.85); }
+          @keyframes glowPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
           }
         `}</style>
       </header>
 
       {/* ── MAIN ── */}
-      <main className="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8" style={{ alignItems: "center" }}>
+      <main style={{
+        maxWidth: 1100,
+        margin: "0 auto",
+        padding: "36px 24px 60px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 32,
+      }}>
 
         {/* Search */}
         {library.length > 0 && (
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", width: "100%", maxWidth: 520 }}>
             <Search size={16} style={{
               position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
-              color: "var(--text-soft)", pointerEvents: "none",
+              color: "rgba(167,139,250,0.6)", pointerEvents: "none",
             }} />
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search prompts, languages, users..."
               style={{
-                width: "100%", padding: "12px 16px 12px 42px",
+                width: "100%", padding: "13px 16px 13px 44px",
                 borderRadius: 14, border: "none", outline: "none",
-                background: "var(--bg)", color: "var(--text)", fontSize: 13,
-                boxShadow: "inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light)",
+                background: "rgba(255,255,255,0.05)",
+                color: "#e2d9f3", fontSize: 13,
+                border: "1px solid rgba(124,58,237,0.15)",
+                boxShadow: "0 0 0 3px rgba(124,58,237,0.05), inset 0 1px 3px rgba(0,0,0,0.2)",
                 fontFamily: "Outfit, sans-serif",
+                transition: "all 0.2s",
+              }}
+              onFocus={(e) => {
+                (e.target as HTMLInputElement).style.borderColor = "rgba(124,58,237,0.45)";
+                (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12), inset 0 1px 3px rgba(0,0,0,0.2)";
+              }}
+              onBlur={(e) => {
+                (e.target as HTMLInputElement).style.borderColor = "rgba(124,58,237,0.15)";
+                (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(124,58,237,0.05), inset 0 1px 3px rgba(0,0,0,0.2)";
               }}
             />
             {search && (
               <button onClick={() => setSearch("")} style={{
-                position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
-                background: "none", border: "none", cursor: "pointer", color: "var(--text-soft)", padding: 4,
+                position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                background: "none", border: "none", cursor: "pointer", color: "rgba(167,139,250,0.5)", padding: 4,
               }}>
                 <X size={14} />
               </button>
@@ -343,15 +321,16 @@ export default function LibraryPage() {
         {/* Auth notice */}
         {!session && (
           <div style={{
-            background: "var(--bg)", borderRadius: 20,
-            boxShadow: "inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light)",
-            padding: "16px 22px", display: "flex", alignItems: "center", gap: 12,
+            background: "rgba(124,58,237,0.08)",
+            borderRadius: 20,
+            border: "1px solid rgba(124,58,237,0.15)",
+            padding: "14px 22px", display: "flex", alignItems: "center", gap: 12,
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
-            <p style={{ fontSize: 12, color: "var(--text-soft)" }}>
-              <a href="/login" style={{ color: "var(--primary)", fontWeight: 700, textDecoration: "none" }}>Sign in</a> to save and manage your prompts.
+            <p style={{ fontSize: 12, color: "rgba(226,217,243,0.6)" }}>
+              <a href="/login" style={{ color: "#a78bfa", fontWeight: 700, textDecoration: "none" }}>Sign in</a> to save and manage your prompts.
             </p>
           </div>
         )}
@@ -361,12 +340,13 @@ export default function LibraryPage() {
           <div style={{ textAlign: "center", padding: 80 }}>
             <div style={{
               width: 48, height: 48, borderRadius: "50%",
-              border: "3px solid var(--sh-dark)",
-              borderTopColor: "var(--primary)",
+              border: "2px solid rgba(124,58,237,0.2)",
+              borderTopColor: "#7c3aed",
               animation: "spin 0.8s linear infinite",
               margin: "0 auto 16px",
+              boxShadow: "0 0 20px rgba(124,58,237,0.3)",
             }} />
-            <p style={{ fontSize: 13, color: "var(--text-soft)" }}>Loading prompts...</p>
+            <p style={{ fontSize: 13, color: "rgba(226,217,243,0.4)" }}>Loading prompts...</p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
@@ -375,107 +355,124 @@ export default function LibraryPage() {
         {!loading && filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: 80 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: "var(--text-muted)" }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "rgba(226,217,243,0.5)" }}>
               {search ? "No results found" : "No prompts yet"}
             </p>
-            <p style={{ fontSize: 12, color: "var(--text-soft)", marginTop: 6 }}>
+            <p style={{ fontSize: 12, color: "rgba(226,217,243,0.3)", marginTop: 6 }}>
               {search ? `No prompts match "${search}"` : "Extract text from an image to get started."}
             </p>
           </div>
         )}
 
-        {/* ── PINTEREST MASONRY GRID ── */}
+        {/* ── DARK GLASS CARDS ── */}
         {!loading && filtered.length > 0 && (
           <div style={{
-            columns: "220px 3",
-            columnGap: "20px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 24,
+            width: "100%",
           }}>
             {filtered.map((prompt) => (
               <div key={prompt.id} style={{
-                breakInside: "avoid",
-                marginBottom: "20px",
-                background: "var(--bg)",
-                borderRadius: 24,
-                boxShadow: "8px 8px 20px var(--sh-dark), -8px -8px 20px var(--sh-light)",
+                background: "linear-gradient(160deg, rgba(30,20,60,0.9) 0%, rgba(20,12,45,0.95) 100%)",
+                borderRadius: 22,
+                border: "1px solid rgba(124,58,237,0.22)",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.06), inset 0 1px 0 rgba(255,255,255,0.06)",
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                transition: "transform 0.2s, box-shadow 0.2s",
+                transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
                 cursor: "default",
               }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "14px 14px 32px var(--sh-dark), -14px -14px 32px var(--sh-light)";
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 16px 50px rgba(0,0,0,0.5), 0 0 40px rgba(124,58,237,0.12), inset 0 1px 0 rgba(255,255,255,0.08)";
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(124,58,237,0.4)";
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "8px 8px 20px var(--sh-dark), -8px -8px 20px var(--sh-light)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 40px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.06), inset 0 1px 0 rgba(255,255,255,0.06)";
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(124,58,237,0.22)";
                 }}
               >
-                {/* ── IMAGE (Pinterest style – full width, real aspect ratio) ── */}
+                {/* ── IMAGE ── */}
                 <ImageBlock prompt={prompt} />
 
                 {/* ── CONTENT ── */}
-                <div style={{ padding: "14px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div style={{ padding: "16px 18px 18px", flex: 1, display: "flex", flexDirection: "column" }}>
 
-                  {/* Meta row */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                  {/* Meta */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <span style={{
-                        fontSize: 9, fontWeight: 700, padding: "2px 9px", borderRadius: 20,
-                        background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                        fontSize: 9, fontWeight: 800, padding: "3px 10px", borderRadius: 20,
+                        background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
                         color: "white",
+                        boxShadow: "0 0 10px rgba(124,58,237,0.35)",
+                        letterSpacing: "0.05em",
                       }}>
                         {prompt.language.toUpperCase()}
                       </span>
+                      <span style={{ fontSize: 9, color: "rgba(226,217,243,0.45)", fontWeight: 500 }}>
+                        @{prompt.userName || "guest"}
+                      </span>
                     </div>
-                    <span style={{ fontSize: 9, color: "var(--text-soft)", fontWeight: 500 }}>
-                      @{prompt.userName || "guest"} · {new Date(prompt.createdAt).toLocaleDateString()}
+                    <span style={{ fontSize: 9, color: "rgba(226,217,243,0.3)" }}>
+                      {new Date(prompt.createdAt).toLocaleDateString()}
                     </span>
                   </div>
 
                   {/* Prompt text */}
-                  <div style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ flex: 1 }}>
                     <p style={{
                       fontFamily: "JetBrains Mono, monospace",
                       fontSize: 10.5,
-                      color: "var(--text)",
-                      lineHeight: 1.75,
+                      color: "rgba(226,217,243,0.75)",
+                      lineHeight: 1.8,
                       whiteSpace: "pre-wrap",
                       wordBreak: "break-word",
                       overflow: "hidden",
                       display: "-webkit-box",
                       WebkitLineClamp: 7,
                       WebkitBoxOrient: "vertical",
-                      textAlign: "center",
                     }}>
                       {prompt.plainText}
                     </p>
                   </div>
 
-                  {/* Action buttons */}
-                  <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
                     <button onClick={() => handleCopy(prompt.plainText, "Text")} style={{
                       flex: 1, minWidth: 60,
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                      padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                      background: "var(--bg)", color: "var(--text)",
-                      fontSize: 10, fontWeight: 600,
+                      padding: "8px 8px", borderRadius: 11, border: "none", cursor: "pointer",
+                      background: "rgba(124,58,237,0.1)",
+                      color: "#a78bfa",
+                      fontSize: 10, fontWeight: 700,
                       fontFamily: "Outfit, sans-serif",
-                      boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                    }}>
+                      border: "1px solid rgba(124,58,237,0.15)",
+                      transition: "all 0.2s",
+                    }}
+                      onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(124,58,237,0.2)"; (e.target as HTMLButtonElement).style.color = "#c4b5fd"; }}
+                      onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(124,58,237,0.1)"; (e.target as HTMLButtonElement).style.color = "#a78bfa"; }}
+                    >
                       <Copy size={10} strokeWidth={2.5} /> Copy
                     </button>
 
                     <button onClick={() => handleShare(prompt)} style={{
                       flex: 1, minWidth: 60,
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                      padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                      background: "var(--bg)", color: "var(--text)",
-                      fontSize: 10, fontWeight: 600,
+                      padding: "8px 8px", borderRadius: 11, border: "none", cursor: "pointer",
+                      background: "rgba(124,58,237,0.1)",
+                      color: "#a78bfa",
+                      fontSize: 10, fontWeight: 700,
                       fontFamily: "Outfit, sans-serif",
-                      boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                    }}>
+                      border: "1px solid rgba(124,58,237,0.15)",
+                      transition: "all 0.2s",
+                    }}
+                      onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(124,58,237,0.2)"; (e.target as HTMLButtonElement).style.color = "#c4b5fd"; }}
+                      onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(124,58,237,0.1)"; (e.target as HTMLButtonElement).style.color = "#a78bfa"; }}
+                    >
                       <Share2 size={10} strokeWidth={2.5} /> Share
                     </button>
 
@@ -484,23 +481,33 @@ export default function LibraryPage() {
                         <button onClick={() => setActivePrompt(prompt)} style={{
                           flex: 1, minWidth: 60,
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                          padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                          background: "var(--bg)", color: "var(--text)",
-                          fontSize: 10, fontWeight: 600,
+                          padding: "8px 8px", borderRadius: 11, border: "none", cursor: "pointer",
+                          background: "rgba(124,58,237,0.1)",
+                          color: "#a78bfa",
+                          fontSize: 10, fontWeight: 700,
                           fontFamily: "Outfit, sans-serif",
-                          boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                        }}>
+                          border: "1px solid rgba(124,58,237,0.15)",
+                          transition: "all 0.2s",
+                        }}
+                          onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(124,58,237,0.2)"; (e.target as HTMLButtonElement).style.color = "#c4b5fd"; }}
+                          onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(124,58,237,0.1)"; (e.target as HTMLButtonElement).style.color = "#a78bfa"; }}
+                        >
                           <Edit3 size={10} strokeWidth={2.5} /> Edit
                         </button>
                         <button onClick={() => handleDelete(prompt.id)} style={{
                           flex: 1, minWidth: 60,
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                          padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                          background: "var(--bg)", color: "#e74c3c",
-                          fontSize: 10, fontWeight: 600,
+                          padding: "8px 8px", borderRadius: 11, border: "none", cursor: "pointer",
+                          background: "rgba(239,68,68,0.08)",
+                          color: "rgba(252,165,165,0.7)",
+                          fontSize: 10, fontWeight: 700,
                           fontFamily: "Outfit, sans-serif",
-                          boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                        }}>
+                          border: "1px solid rgba(239,68,68,0.12)",
+                          transition: "all 0.2s",
+                        }}
+                          onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(239,68,68,0.15)"; (e.target as HTMLButtonElement).style.color = "#fca5a5"; }}
+                          onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = "rgba(239,68,68,0.08)"; (e.target as HTMLButtonElement).style.color = "rgba(252,165,165,0.7)"; }}
+                        >
                           <Trash2 size={10} strokeWidth={2.5} /> Delete
                         </button>
                       </>
@@ -514,7 +521,7 @@ export default function LibraryPage() {
 
         {/* Stats */}
         {!loading && filtered.length > 0 && (
-          <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-soft)", paddingBottom: 20 }}>
+          <p style={{ textAlign: "center", fontSize: 11, color: "rgba(226,217,243,0.25)", paddingBottom: 20 }}>
             Showing {filtered.length} of {library.length} prompt{library.length !== 1 ? "s" : ""}
             {search && ` matching "${search}"`}
           </p>
