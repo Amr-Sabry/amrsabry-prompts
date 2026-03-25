@@ -253,16 +253,17 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* ── NEUMORPHISM CARD GRID ── */}
+        {/* ── PINTEREST MASONRY GRID ── */}
         {!loading && filtered.length > 0 && (
           <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 24,
+            columns: "280px 3",
+            columnGap: "22px",
             width: "100%",
           }}>
             {filtered.map((prompt) => (
               <div key={prompt.id} style={{
+                breakInside: "avoid",
+                marginBottom: "22px",
                 background: "#dde1ec",
                 borderRadius: 22,
                 boxShadow: "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)",

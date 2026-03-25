@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
 import Toast from "@/components/Toast";
 
 export default function LoginPage() {
@@ -29,7 +30,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)", fontFamily: "Outfit, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#dde1ec", fontFamily: "Outfit, sans-serif" }}>
+      <Header />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
       <div style={{
         width: "100%",
         maxWidth: 400,

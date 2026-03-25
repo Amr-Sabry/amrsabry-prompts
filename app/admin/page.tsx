@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
-import { Users, Trash2, Plus, Shield, UserCheck } from "lucide-react";
-import TabNav from "@/components/TabNav";
+import { useSession } from "next-auth/react";
+import Header from "@/components/Header";
+import { Users, Trash2, Plus, UserCheck } from "lucide-react";
 import Toast from "@/components/Toast";
 
 interface User { id: string; username: string; role: string; createdAt: string; }
@@ -87,39 +87,9 @@ export default function AdminPage() {
   const insetShadow = "inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light)";
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)", fontFamily: "Outfit, sans-serif" }}>
-      {/* Header */}
-      <header style={{
-        position: "sticky", top: 0, zIndex: 40,
-        background: "rgba(221,225,236,0.9)", backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(163,177,198,0.3)",
-      }}>
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div style={{
-              width: 40, height: 40, borderRadius: 11,
-              background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
-              boxShadow: "4px 4px 12px rgba(124,58,237,0.3)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Shield size={18} color="white" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: 16, fontWeight: 800, color: "var(--text)" }}>Admin Panel</h1>
-              <p style={{ fontSize: 10, color: "var(--text-soft)" }}>Manage users & access</p>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", color: "white" }}>ADMIN</span>
-            <span style={{ fontSize: 11, color: "var(--text-soft)" }}>@{session.user.username}</span>
-            <button onClick={() => signOut({ callbackUrl: "/login" })} className="neu-btn neu-btn-sm" style={{ fontSize: 10, padding: "5px 10px" }}>Logout</button>
-            <TabNav />
-          </div>
-        </div>
-      </header>
-
-      {/* Main */}
-      <main className="max-w-3xl mx-auto px-6 py-12 flex flex-col gap-8">
+    <div style={{ minHeight: "100vh", background: "#dde1ec", fontFamily: "Outfit, sans-serif" }}>
+      <Header />
+      <main style={{ maxWidth: 800, margin: "0 auto", padding: "36px 24px 60px", display: "flex", flexDirection: "column", gap: 28 }}>
 
         {/* Create User */}
         <div style={{ background: "var(--bg)", borderRadius: 28, boxShadow: cardShadow, padding: 28 }}>
