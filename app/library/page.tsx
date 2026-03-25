@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import { Library, Search, X, Edit3, Copy, Check, Wand2 } from "lucide-react";
 import TabNav from "@/components/TabNav";
@@ -77,7 +77,7 @@ export default function LibraryPage() {
                 AmrSabry-prompts
               </h1>
               <p style={{ fontSize: "10px", color: "var(--text-soft)", fontWeight: 500, letterSpacing: "0.02em" }}>
-                Extract • Edit • Save
+                Extract â€¢ Edit â€¢ Save
               </p>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default function LibraryPage() {
                     color: "var(--text-soft)", fontSize: "10px", lineHeight: 1,
                   }}
                 >
-                  ✕
+                  âœ•
                 </button>
               )}
             </div>
@@ -186,7 +186,7 @@ export default function LibraryPage() {
                 }}
                 onClick={() => setActivePrompt(prompt)}
               >
-                {/* Image — original ratio, no crop */}
+                {/* Image â€” original ratio, no crop */}
                 {prompt.imageThumbnail && (
                   <div style={{
                     background: "var(--bg-deep)",
@@ -353,7 +353,7 @@ function EditModal({ prompt, onClose, onSave, onCopy }: EditModalProps) {
       canvas.height = img.height * ratio;
       const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const thumbnail = canvas.toDataURL("image/jpeg", 0.75);
+      const thumbnail = canvas.toDataURL("image/jpeg", 0.95);
 
       const ocrWorker = await import("tesseract.js").then(m => m.createWorker("eng+ara"));
       const { data } = await ocrWorker.recognize(url);

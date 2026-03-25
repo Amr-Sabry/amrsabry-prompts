@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useCallback } from "react";
 import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
 import TabNav from "@/components/TabNav";
@@ -53,14 +53,14 @@ export default function ExtractPage() {
       if (imageUrl) {
         const img = new window.Image();
         await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; img.src = imageUrl; });
-        const maxW = 520;
+        const maxW = 800;
         const ratio = img.width > maxW ? maxW / img.width : 1;
         const canvas = document.createElement("canvas");
         canvas.width = img.width * ratio;
         canvas.height = img.height * ratio;
         const ctx = canvas.getContext("2d")!;
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        thumbnail = canvas.toDataURL("image/jpeg", 0.8);
+        thumbnail = canvas.toDataURL("image/jpeg", 0.95);
       }
 
       const saved: SavedPrompt = {
@@ -151,7 +151,7 @@ export default function ExtractPage() {
                 AmrSabry-prompts
               </h1>
               <p style={{ fontSize: "10px", color: "var(--text-soft)", fontWeight: 500, letterSpacing: "0.02em" }}>
-                Extract • Edit • Save
+                Extract â€¢ Edit â€¢ Save
               </p>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function ExtractPage() {
             }} />
             <div>
               <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--text)" }}>Recognizing text...</p>
-              <p style={{ fontSize: "11px", color: "var(--text-soft)", marginTop: "2px" }}>Powered by Tesseract.js — runs locally in your browser</p>
+              <p style={{ fontSize: "11px", color: "var(--text-soft)", marginTop: "2px" }}>Powered by Tesseract.js â€” runs locally in your browser</p>
             </div>
           </div>
         )}
