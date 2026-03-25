@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useCallback } from "react";
 import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
 import TabNav from "@/components/TabNav";
@@ -12,6 +12,7 @@ const STORAGE_KEY = "amrsabry_prompts_library";
 
 export default function ExtractPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrResult, setOcrResult] = useState<OCRResult | null>(null);
   const [editingText, setEditingText] = useState(false);
@@ -26,6 +27,7 @@ export default function ExtractPage() {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
     const url = URL.createObjectURL(file);
     setImageUrl(url);
+    setImageFile(file);
 
     try {
       const worker = await createWorker("eng+ara");
@@ -49,18 +51,13 @@ export default function ExtractPage() {
   const handleSave = useCallback(async () => {
     if (!editedText) return;
     try {
-      let thumbnail = "";
-      if (imageUrl) {
-        const img = new window.Image();
-        await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; img.src = imageUrl; });
-        const maxW = 800;
-        const ratio = img.width > maxW ? maxW / img.width : 1;
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width * ratio;
-        canvas.height = img.height * ratio;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        thumbnail = canvas.toDataURL("image/jpeg", 0.95);
+      let imageData = "";
+      if (imageFile) {
+        imageData = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(imageFile);
+        });
       }
 
       const saved: SavedPrompt = {
@@ -72,7 +69,7 @@ export default function ExtractPage() {
           confidence: ocrResult?.confidence || 0,
           format: "plain",
         }, null, 2),
-        imageThumbnail: thumbnail,
+        imageThumbnail: imageData,
         language: ocrResult?.language || "unknown",
         confidence: ocrResult?.confidence || 0,
         createdAt: new Date().toISOString(),
@@ -84,11 +81,12 @@ export default function ExtractPage() {
     } catch {
       setToast({ message: "Failed to save.", type: "error" });
     }
-  }, [editedText, imageUrl, ocrResult]);
+  }, [editedText, imageFile, ocrResult]);
 
   const handleClear = () => {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
     setImageUrl(null);
+    setImageFile(null);
     setOcrResult(null);
     setEditingText(false);
   };
@@ -151,7 +149,7 @@ export default function ExtractPage() {
                 AmrSabry-prompts
               </h1>
               <p style={{ fontSize: "10px", color: "var(--text-soft)", fontWeight: 500, letterSpacing: "0.02em" }}>
-                Extract â€¢ Edit â€¢ Save
+                Extract • Edit • Save
               </p>
             </div>
           </div>
@@ -222,7 +220,7 @@ export default function ExtractPage() {
             }} />
             <div>
               <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--text)" }}>Recognizing text...</p>
-              <p style={{ fontSize: "11px", color: "var(--text-soft)", marginTop: "2px" }}>Powered by Tesseract.js â€” runs locally in your browser</p>
+              <p style={{ fontSize: "11px", color: "var(--text-soft)", marginTop: "2px" }}>Powered by Tesseract.js — runs locally in your browser</p>
             </div>
           </div>
         )}
