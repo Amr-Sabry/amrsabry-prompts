@@ -12,7 +12,7 @@ export default function LibraryPage() {
   const { data: session } = useSession();
   const [library, setLibrary] = useState<SavedPrompt[]>([]);
   const [search, setSearch] = useState("");
-  const [toast, setToToast] = useState<<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const [toast, setToToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePrompt, setActivePrompt] = useState<SavedPrompt | null>(null);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
