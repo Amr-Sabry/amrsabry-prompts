@@ -1,4 +1,4 @@
-/* AmrSabry-prompts Library - Neumorphism Premium */
+﻿/* AmrSabry-prompts Library - Neumorphism Premium */
 "use client";
 import { useState, useEffect } from "react";
 import { Search, X, Edit3, Copy, Wand2, Share2, Trash2 } from "lucide-react";
@@ -8,7 +8,7 @@ import Toast from "@/components/Toast";
 import EditModal from "@/components/EditModal";
 import { SavedPrompt } from "@/types/prompt";
 
-// ─── Design Tokens ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Design Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const C = {
   bg: "#dde1ec",
   bgDeep: "#c8ccd6",
@@ -27,7 +27,7 @@ const C = {
 const raised = `8px 8px 20px ${C.shDark}, -8px -8px 20px ${C.shLight}`;
 const inset = `inset 4px 4px 10px ${C.insetDark}, inset -4px -4px 10px ${C.insetLight}`;
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Hooks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function useImageDimensions(src: string) {
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   useEffect(() => {
@@ -39,7 +39,7 @@ function useImageDimensions(src: string) {
   return dims;
 }
 
-// ─── ImageBlock ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ ImageBlock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   const imgSrc = prompt.imageThumbnail || "";
   const dims = useImageDimensions(imgSrc);
@@ -81,7 +81,7 @@ function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LibraryPage() {
   const { data: session } = useSession();
   const [library, setLibrary] = useState<SavedPrompt[]>([]);
@@ -96,6 +96,21 @@ export default function LibraryPage() {
       .then((data) => { if (Array.isArray(data)) setLibrary(data); else if (data.error) setLibrary([]); })
       .catch(() => setLibrary([]))
       .finally(() => setLoading(false));
+  }, []);
+
+  // Scroll to card when opened via shared link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const promptId = params.get("prompt");
+    if (promptId) {
+      setTimeout(() => {
+        const el = document.getElementById(`card-${promptId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.style.boxShadow = `0 0 0 3px #7c3aed, 12px 12px 28px rgba(163,177,198,0.8), -12px -12px 28px rgba(255,255,255,1)`;
+        }
+      }, 600);
+    }
   }, []);
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
@@ -135,12 +150,16 @@ export default function LibraryPage() {
   };
 
   const handleShare = async (prompt: SavedPrompt) => {
-    const shareData = { title: "AmrSabry-prompts", text: prompt.plainText };
+    const shareUrl = `https://prompts.amrsabry.com/library?prompt=${prompt.id}`;
+    const shareData = {
+      title: "AmrSabry-prompts",
+      text: `${prompt.plainText.substring(0, 200)}${prompt.plainText.length > 200 ? "..." : ""}\n\nðŸ”— ${shareUrl}`,
+    };
     if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
       try { await navigator.share(shareData); } catch {}
     } else {
-      navigator.clipboard.writeText(prompt.plainText);
-      showToast("Prompt copied!", "success");
+      navigator.clipboard.writeText(shareUrl);
+      showToast("Link copied!", "success");
     }
   };
 
@@ -164,10 +183,10 @@ export default function LibraryPage() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "Outfit, sans-serif" }}>
 
-      {/* ── SHARED HEADER ── */}
+      {/* â”€â”€ SHARED HEADER â”€â”€ */}
       <Header />
 
-      {/* ── MAIN ── */}
+      {/* â”€â”€ MAIN â”€â”€ */}
       <main style={{
         maxWidth: 1100, margin: "0 auto",
         padding: "36px 24px 60px",
@@ -241,7 +260,7 @@ export default function LibraryPage() {
         {/* Empty state */}
         {!loading && filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: 80 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>ðŸ”</div>
             <p style={{ fontSize: 16, fontWeight: 700, color: C.textMuted }}>
               {search ? "No results found" : "No prompts yet"}
             </p>
@@ -251,11 +270,11 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* ── PINTEREST MASONRY GRID ── */}
+        {/* â”€â”€ PINTEREST MASONRY GRID â”€â”€ */}
         {!loading && filtered.length > 0 && (
           <div style={{ columns: "280px 3", columnGap: "22px", width: "100%" }}>
             {filtered.map((prompt) => (
-              <div key={prompt.id} style={{
+              <div id={`card-${prompt.id}`} key={prompt.id} style={{
                 breakInside: "avoid", marginBottom: "22px",
                 background: C.bg, borderRadius: 24,
                 boxShadow: raised, overflow: "hidden",
@@ -273,7 +292,7 @@ export default function LibraryPage() {
               >
                 <ImageBlock prompt={prompt} />
 
-                {/* ── CONTENT ── */}
+                {/* â”€â”€ CONTENT â”€â”€ */}
                 <div style={{ padding: "16px 18px 18px", flex: 1, display: "flex", flexDirection: "column" }}>
 
                   {/* Meta */}
@@ -316,7 +335,7 @@ export default function LibraryPage() {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                       padding: "8px 6px", borderRadius: 12, border: "none", cursor: "pointer",
                       background: C.bg, color: C.text, fontSize: 10, fontWeight: 700,
-                      fontFamily: "Outfit, sans-serif", boxShadow: raised, transition: "all 0.2s",
+                      fontFamily: "Orbitron, sans-serif", boxShadow: raised, transition: "all 0.2s",
                     }}
                       onMouseEnter={(e) => {
                         (e.target as HTMLButtonElement).style.boxShadow = `inset 3px 3px 8px ${C.insetDark}, inset -3px -3px 8px ${C.insetLight}`;
@@ -335,7 +354,7 @@ export default function LibraryPage() {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                       padding: "8px 6px", borderRadius: 12, border: "none", cursor: "pointer",
                       background: C.bg, color: C.text, fontSize: 10, fontWeight: 700,
-                      fontFamily: "Outfit, sans-serif", boxShadow: raised, transition: "all 0.2s",
+                      fontFamily: "Orbitron, sans-serif", boxShadow: raised, transition: "all 0.2s",
                     }}
                       onMouseEnter={(e) => {
                         (e.target as HTMLButtonElement).style.boxShadow = `inset 3px 3px 8px ${C.insetDark}, inset -3px -3px 8px ${C.insetLight}`;
@@ -356,7 +375,7 @@ export default function LibraryPage() {
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                           padding: "8px 6px", borderRadius: 12, border: "none", cursor: "pointer",
                           background: C.bg, color: C.text, fontSize: 10, fontWeight: 700,
-                          fontFamily: "Outfit, sans-serif", boxShadow: raised, transition: "all 0.2s",
+                          fontFamily: "Orbitron, sans-serif", boxShadow: raised, transition: "all 0.2s",
                         }}
                           onMouseEnter={(e) => {
                             (e.target as HTMLButtonElement).style.boxShadow = `inset 3px 3px 8px ${C.insetDark}, inset -3px -3px 8px ${C.insetLight}`;
@@ -374,7 +393,7 @@ export default function LibraryPage() {
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                           padding: "8px 6px", borderRadius: 12, border: "none", cursor: "pointer",
                           background: C.bg, color: C.danger, fontSize: 10, fontWeight: 700,
-                          fontFamily: "Outfit, sans-serif", boxShadow: raised, transition: "all 0.2s",
+                          fontFamily: "Orbitron, sans-serif", boxShadow: raised, transition: "all 0.2s",
                         }}
                           onMouseEnter={(e) => {
                             (e.target as HTMLButtonElement).style.boxShadow = `inset 3px 3px 8px ${C.insetDark}, inset -3px -3px 8px ${C.insetLight}`;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useCallback } from "react";
 import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -8,7 +8,7 @@ import Toast from "@/components/Toast";
 import { OCRResult } from "@/types/prompt";
 import { createWorker } from "tesseract.js";
 
-// ─── Design Tokens ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Design Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const C = {
   bg: "#dde1ec",
   bgDeep: "#c8ccd6",
@@ -30,7 +30,7 @@ const raised = `8px 8px 20px ${C.shDark}, -8px -8px 20px ${C.shLight}`;
 const inset = `inset 4px 4px 10px ${C.insetDark}, inset -4px -4px 10px ${C.insetLight}`;
 const pill = "50px";
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ExtractPage() {
   const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -144,10 +144,10 @@ export default function ExtractPage() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "Outfit, sans-serif" }}>
 
-      {/* ── SHARED HEADER ── */}
+      {/* â”€â”€ SHARED HEADER â”€â”€ */}
       <Header />
 
-      {/* ── MAIN ── */}
+      {/* â”€â”€ MAIN â”€â”€ */}
       <main style={{
         maxWidth: 1100, margin: "0 auto",
         padding: "36px 24px 60px",
@@ -217,7 +217,7 @@ export default function ExtractPage() {
             <div style={{ width: 22, height: 22, borderRadius: "50%", border: `2.5px solid rgba(124,58,237,0.2)`, borderTopColor: C.primary, animation: "spin 0.7s linear infinite", flexShrink: 0 }} />
             <div>
               <p style={{ fontSize: 15, fontWeight: 700, color: C.text }}>Recognizing text...</p>
-              <p style={{ fontSize: 11, color: C.textSoft, marginTop: 3 }}>Powered by Tesseract.js — runs locally in your browser</p>
+              <p style={{ fontSize: 11, color: C.textSoft, marginTop: 3 }}>Powered by Tesseract.js â€” runs locally in your browser</p>
             </div>
           </div>
         )}
@@ -237,15 +237,15 @@ export default function ExtractPage() {
                 <div style={{ display: "flex", gap: 8 }}>
                   {editingText ? (
                     <>
-                      <button onClick={handleSaveEdit} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: C.bg, color: C.success, fontSize: 11, fontWeight: 700, fontFamily: "Outfit, sans-serif", boxShadow: raised }}>
+                      <button onClick={handleSaveEdit} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: C.bg, color: C.success, fontSize: 11, fontWeight: 700, fontFamily: "Orbitron, sans-serif", boxShadow: raised }}>
                         <Check size={12} strokeWidth={2.5} /> Save
                       </button>
-                      <button onClick={handleRevert} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: C.bg, color: C.text, fontSize: 11, fontWeight: 700, fontFamily: "Outfit, sans-serif", boxShadow: raised }}>
+                      <button onClick={handleRevert} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: C.bg, color: C.text, fontSize: 11, fontWeight: 700, fontFamily: "Orbitron, sans-serif", boxShadow: raised }}>
                         <RotateCcw size={11} strokeWidth={2} /> Revert
                       </button>
                     </>
                   ) : (
-                    <button onClick={() => { setEditingText(true); setEditedText(ocrResult.plainText); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: C.bg, color: C.text, fontSize: 11, fontWeight: 700, fontFamily: "Outfit, sans-serif", boxShadow: raised }}>
+                    <button onClick={() => { setEditingText(true); setEditedText(ocrResult.plainText); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: C.bg, color: C.text, fontSize: 11, fontWeight: 700, fontFamily: "Orbitron, sans-serif", boxShadow: raised }}>
                       <Edit3 size={11} strokeWidth={2} /> Edit Text
                     </button>
                   )}
