@@ -326,12 +326,27 @@ function EditModal({ prompt, onClose, onSave, onCopy }: EditModalProps) {
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   // Build JSON preview
-  const jsonPreview = JSON.stringify({ text, language: prompt.language, confidence: Math.round(prompt.confidence * 100) / 100, format: "plain" }, null, 2);
+        const previewLang = (() => {
+        const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
+        const totalChars = text.replace(/\s/g, "").length;
+        return totalChars > 0 && arabicChars / totalChars > 0.3 ? "ara" : prompt.language;
+      })();
+      const jsonPreview = JSON.stringify({ text, language: previewLang, confidence: Math.round(prompt.confidence * 100) / 100, format: "plain" }, null, 2);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated: SavedPrompt = { ...prompt, plainText: text };
+            const currentLang = (() => {
+        const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
+        const totalChars = text.replace(/\s/g, "").length;
+        return totalChars > 0 && arabicChars / totalChars > 0.3 ? "ara" : "eng";
+      })();
+      const updated: SavedPrompt = {
+        ...prompt,
+        plainText: text,
+        jsonText: JSON.stringify({ text, language: currentLang, confidence: prompt.confidence, format: "plain" }, null, 2),
+        language: currentLang,
+      };
       onSave(updated);
     } finally {
       setSaving(false);
@@ -343,35 +358,15 @@ function EditModal({ prompt, onClose, onSave, onCopy }: EditModalProps) {
     if (!file) return;
     setImgLoading(true);
     try {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; img.src = url; });
-      const max = 160;
-      const ratio = Math.min(max / img.width, max / img.height);
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const thumbnail = canvas.toDataURL("image/jpeg", 0.95);
-
-      const ocrWorker = await import("tesseract.js").then(m => m.createWorker("eng+ara"));
-      const { data } = await ocrWorker.recognize(url);
-      await ocrWorker.terminate();
-
-      const arabicChars = (data.text.match(/[\u0600-\u06FF]/g) || []).length;
-      const totalChars = data.text.replace(/\s/g, "").length;
-      const lang = totalChars > 0 && arabicChars / totalChars > 0.3 ? "ara" : "eng";
-
+      const imageData = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
       const updated: SavedPrompt = {
         ...prompt,
-        imageThumbnail: thumbnail,
-        plainText: data.text.trim(),
-        jsonText: JSON.stringify({ text: data.text.trim(), language: lang, confidence: data.confidence / 100, format: "plain" }, null, 2),
-        language: lang,
-        confidence: data.confidence / 100,
+        imageThumbnail: imageData,
       };
-      setText(data.text.trim());
       onSave(updated);
     } catch {
       // silently fail
