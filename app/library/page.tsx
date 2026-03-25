@@ -310,7 +310,7 @@ export default function LibraryPage() {
       </header>
 
       {/* ── MAIN ── */}
-      <main className="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8">
+      <main className="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8" style={{ alignItems: "center" }}>
 
         {/* Search */}
         {library.length > 0 && (
