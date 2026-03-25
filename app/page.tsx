@@ -53,14 +53,14 @@ export default function ExtractPage() {
       if (imageUrl) {
         const img = new window.Image();
         await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; img.src = imageUrl; });
-        const max = 160;
-        const ratio = Math.min(max / img.width, max / img.height);
+        const maxW = 520;
+        const ratio = img.width > maxW ? maxW / img.width : 1;
         const canvas = document.createElement("canvas");
         canvas.width = img.width * ratio;
         canvas.height = img.height * ratio;
         const ctx = canvas.getContext("2d")!;
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        thumbnail = canvas.toDataURL("image/jpeg", 0.75);
+        thumbnail = canvas.toDataURL("image/jpeg", 0.8);
       }
 
       const saved: SavedPrompt = {

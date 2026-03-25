@@ -169,8 +169,8 @@ export default function LibraryPage() {
         {/* ===== MASONRY BENTO GRID ===== */}
         {!loading && filtered.length > 0 && (
           <div style={{
-            columns: "280px",
-            columnGap: "18px",
+            columns: "260px",
+            columnGap: "16px",
           }}>
             {filtered.map((prompt) => (
               <div
