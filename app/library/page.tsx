@@ -177,95 +177,88 @@ export default function LibraryPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 16,
+          gap: 20,
         }}>
 
-          {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* LEFT ─ Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
             <div style={{
-              width: 42, height: 42, borderRadius: 12,
+              width: 40, height: 40, borderRadius: 11,
               background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
-              boxShadow: "0 0 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+              boxShadow: "0 0 18px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              position: "relative", overflow: "hidden",
             }}>
-              <Wand2 size={18} color="white" strokeWidth={2} />
-              {/* Glow ring */}
-              <div style={{
-                position: "absolute", inset: -2,
-                borderRadius: 14,
-                background: "linear-gradient(135deg, rgba(124,58,237,0.4), transparent)",
-                animation: "glowPulse 2s ease infinite",
-              }} />
+              <Wand2 size={17} color="white" strokeWidth={2} />
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.01em", lineHeight: 1 }}>
+              <h1 style={{ fontSize: 17, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.01em", lineHeight: 1 }}>
                 PromptLens
               </h1>
-              <p style={{ fontSize: 10, color: "rgba(226,217,243,0.45)", fontWeight: 500 }}>
+              <p style={{ fontSize: 10, color: "rgba(226,217,243,0.4)", fontWeight: 500 }}>
                 {library.length} prompt{library.length !== 1 ? "s" : ""} saved
               </p>
             </div>
           </div>
 
-          {/* Right side */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* CENTER ─ TabNav */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1 }}>
+            <TabNav />
+          </div>
+
+          {/* RIGHT ─ Auth */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {session ? (
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8,
-                padding: "5px 6px 5px 14px",
-                borderRadius: "50px",
-                background: "rgba(124,58,237,0.08)",
-                border: "1px solid rgba(124,58,237,0.18)",
-              }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, fontWeight: 800, color: "white",
-                  boxShadow: "0 0 10px rgba(124,58,237,0.4)",
-                }}>
-                  {(session.user.username || "U")[0].toUpperCase()}
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(226,217,243,0.8)" }}>
-                  @{session.user.username}
-                </span>
+              <>
                 {session.user.role === "admin" && (
                   <a href="/admin" style={{
-                    fontSize: 9, fontWeight: 800, padding: "2px 9px", borderRadius: 20,
+                    fontSize: 9, fontWeight: 800, padding: "3px 10px", borderRadius: 20,
                     background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
-                    color: "white", textDecoration: "none", letterSpacing: "0.05em",
+                    color: "white", textDecoration: "none", letterSpacing: "0.06em",
                     boxShadow: "0 0 12px rgba(124,58,237,0.4)",
                   }}>ADMIN</a>
                 )}
-                <button onClick={() => signOut({ callbackUrl: "/login" })} style={{
-                  fontSize: 9, fontWeight: 700, padding: "4px 11px", borderRadius: 20,
-                  border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer",
-                  background: "rgba(255,255,255,0.05)", color: "rgba(226,217,243,0.55)",
-                  transition: "all 0.2s",
-                }}
-                  onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = "#f87171"; (e.target as HTMLButtonElement).style.borderColor = "rgba(248,113,113,0.3)"; }}
-                  onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = "rgba(226,217,243,0.55)"; (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.08)"; }}
-                >Logout</button>
-              </div>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "5px 8px 5px 12px",
+                  borderRadius: "50px",
+                  background: "rgba(124,58,237,0.08)",
+                  border: "1px solid rgba(124,58,237,0.18)",
+                }}>
+                  <div style={{
+                    width: 26, height: 26, borderRadius: "50%",
+                    background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 11, fontWeight: 800, color: "white",
+                    boxShadow: "0 0 8px rgba(124,58,237,0.4)",
+                  }}>
+                    {(session.user.username || "U")[0].toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(226,217,243,0.8)" }}>
+                    @{session.user.username}
+                  </span>
+                  <button onClick={() => signOut({ callbackUrl: "/login" })} style={{
+                    fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
+                    border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer",
+                    background: "rgba(255,255,255,0.05)", color: "rgba(226,217,243,0.5)",
+                    transition: "all 0.2s",
+                  }}
+                    onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = "#f87171"; }}
+                    onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = "rgba(226,217,243,0.5)"; }}
+                  >Logout</button>
+                </div>
+              </>
             ) : (
               <a href="/login" style={{
                 fontSize: 11, fontWeight: 800, padding: "7px 18px", borderRadius: 50,
                 textDecoration: "none", letterSpacing: "0.05em",
                 background: "linear-gradient(135deg, #6d28d9, #7c3aed)",
                 color: "white",
-                boxShadow: "0 0 20px rgba(124,58,237,0.4), 0 0 40px rgba(124,58,237,0.15)",
+                boxShadow: "0 0 20px rgba(124,58,237,0.4)",
               }}>Sign in</a>
             )}
-            <TabNav />
           </div>
+
         </div>
-        <style>{`
-          @keyframes glowPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-          }
-        `}</style>
       </header>
 
       {/* ── MAIN ── */}
