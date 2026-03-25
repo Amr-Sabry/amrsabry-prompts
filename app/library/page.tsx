@@ -48,21 +48,21 @@ export default function LibraryPage() {
     if (activePrompt?.id === id) setActivePrompt(null);
   };
 
-        const handleCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-        const handleShare = async (prompt: SavedPrompt) => {
-        const shareData = {
-          title: "AmrSabry-prompts",
-          text: prompt.plainText,
-        };
-        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-          try { await navigator.share(shareData); } catch {}
-        } else {
-          navigator.clipboard.writeText(prompt.plainText);
-          showToast("Prompt copied!", "success");
-        }
-      };
+  const handleShare = async (prompt: SavedPrompt) => {
+    const shareData = {
+      title: "AmrSabry-prompts",
+      text: prompt.plainText,
+    };
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try { await navigator.share(shareData); } catch {}
+    } else {
+      navigator.clipboard.writeText(prompt.plainText);
+      showToast("Prompt copied!", "success");
+    }
+  };
 
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() => {
       showToast(`${label} copied!`, "success");
     });
   };
