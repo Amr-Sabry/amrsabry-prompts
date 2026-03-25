@@ -1,12 +1,87 @@
-/* PromptLens Library - Full Redesign - Guaranteed Display */
+/* PromptLens Library - Pinterest Masonry Style */
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Search, X, Edit3, Copy, Wand2, Share2, Trash2, ExternalLink } from "lucide-react";
+import { Search, X, Edit3, Copy, Wand2, Share2, Trash2 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import TabNav from "@/components/TabNav";
 import Toast from "@/components/Toast";
 import EditModal from "@/components/EditModal";
 import { SavedPrompt } from "@/types/prompt";
+
+// Extracts natural dimensions from a base64 or URL image
+function useImageDimensions(src: string) {
+  const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+  useEffect(() => {
+    if (!src) return;
+    const img = new Image();
+    img.onload = () => setDims({ w: img.naturalWidth, h: img.naturalHeight });
+    img.src = src;
+  }, [src]);
+  return dims;
+}
+
+function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
+  const imgSrc = prompt.imageThumbnail || "";
+  const dims = useImageDimensions(imgSrc);
+
+  // No image → gradient placeholder
+  if (!imgSrc) {
+    return (
+      <div style={{
+        background: "linear-gradient(135deg, var(--primary-dark), var(--primary))",
+        padding: "24px 10px 0",
+      }}>
+        <div style={{
+          borderRadius: "18px 18px 0 0",
+          height: 80,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <Wand2 size={28} color="rgba(255,255,255,0.35)" strokeWidth={1.5} />
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate aspect-ratio–constrained height
+  // Wider than 600px → constrain to 600, else natural width
+  const maxW = 600;
+  const aspectRatio = dims ? dims.h / dims.w : 0.625; // default 16:10
+  const renderedW = dims ? Math.min(dims.w, maxW) : maxW;
+  const renderedH = Math.round(renderedW * aspectRatio);
+
+  return (
+    <div style={{
+      background: "#e8e8f0",
+      padding: "10px 10px 0",
+    }}>
+      <div style={{
+        borderRadius: "18px 18px 0 0",
+        overflow: "hidden",
+        background: "var(--bg-deep)",
+        // Dynamic aspect-ratio container — enforces Pinterest ratio
+        aspectRatio: dims ? `${renderedW}/${renderedH}` : "auto",
+        height: dims ? undefined : 200,
+      }}>
+        <img
+          src={imgSrc}
+          alt={`Prompt thumbnail`}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            borderRadius: "18px 18px 0 0",
+          }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function LibraryPage() {
   const { data: session } = useSession();
@@ -15,42 +90,17 @@ export default function LibraryPage() {
   const [toast, setToToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePrompt, setActivePrompt] = useState<SavedPrompt | null>(null);
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-  const retryTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     fetch("/api/prompts")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setLibrary(data);
-        } else if (data.error) {
-          setLibrary([]);
-        }
+        if (Array.isArray(data)) setLibrary(data);
+        else if (data.error) setLibrary([]);
       })
       .catch(() => setLibrary([]))
       .finally(() => setLoading(false));
   }, []);
-
-  // Safe image display with retry
-  const getImgSrc = (prompt: SavedPrompt): string => {
-    if (!prompt.imageThumbnail) return "";
-    if (imgErrors[prompt.id]) return "";
-    return prompt.imageThumbnail;
-  };
-
-  const handleImgError = (promptId: string) => {
-    setImgErrors((prev) => ({ ...prev, [promptId]: true }));
-    // Auto-retry after 2s
-    if (retryTimers.current[promptId]) clearTimeout(retryTimers.current[promptId]);
-    retryTimers.current[promptId] = setTimeout(() => {
-      setImgErrors((prev) => {
-        const next = { ...prev };
-        delete next[promptId];
-        return next;
-      });
-    }, 2000);
-  };
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
     setToToast({ message, type });
@@ -115,11 +165,9 @@ export default function LibraryPage() {
       )
     : library;
 
-  const isBase64Image = (str: string) =>
-    str && (str.startsWith("data:image/") || str.startsWith("http"));
-
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)", fontFamily: "Outfit, sans-serif" }}>
+
       {/* ── HEADER ── */}
       <header style={{
         position: "sticky", top: 0, zIndex: 40,
@@ -143,7 +191,6 @@ export default function LibraryPage() {
               </p>
             </div>
           </div>
-
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {session ? (
               <>
@@ -170,8 +217,7 @@ export default function LibraryPage() {
                 <button onClick={() => signOut({ callbackUrl: "/login" })} style={{
                   fontSize: 10, fontWeight: 600, padding: "5px 12px", borderRadius: 12,
                   border: "none", cursor: "pointer",
-                  background: "var(--bg)",
-                  color: "var(--text-muted)",
+                  background: "var(--bg)", color: "var(--text-muted)",
                   boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
                 }}>Logout</button>
               </>
@@ -192,25 +238,19 @@ export default function LibraryPage() {
       {/* ── MAIN ── */}
       <main className="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8">
 
-        {/* Search bar */}
+        {/* Search */}
         {library.length > 0 && (
           <div style={{ position: "relative" }}>
             <Search size={16} style={{
               position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
               color: "var(--text-soft)", pointerEvents: "none",
             }} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search prompts, languages, users..."
               style={{
                 width: "100%", padding: "12px 16px 12px 42px",
-                borderRadius: 14,
-                border: "none", outline: "none",
-                background: "var(--bg)",
-                color: "var(--text)",
-                fontSize: 13,
+                borderRadius: 14, border: "none", outline: "none",
+                background: "var(--bg)", color: "var(--text)", fontSize: 13,
                 boxShadow: "inset 4px 4px 10px var(--sh-dark), inset -4px -4px 10px var(--sh-light)",
                 fontFamily: "Outfit, sans-serif",
               }}
@@ -218,8 +258,7 @@ export default function LibraryPage() {
             {search && (
               <button onClick={() => setSearch("")} style={{
                 position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
-                background: "none", border: "none", cursor: "pointer", color: "var(--text-soft)",
-                padding: 4, display: "flex", alignItems: "center",
+                background: "none", border: "none", cursor: "pointer", color: "var(--text-soft)", padding: 4,
               }}>
                 <X size={14} />
               </button>
@@ -239,7 +278,6 @@ export default function LibraryPage() {
             </svg>
             <p style={{ fontSize: 12, color: "var(--text-soft)" }}>
               <a href="/login" style={{ color: "var(--primary)", fontWeight: 700, textDecoration: "none" }}>Sign in</a> to save and manage your prompts.
-              You can still browse and copy existing prompts.
             </p>
           </div>
         )}
@@ -272,189 +310,137 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* ── CARD GRID (CSS Grid - guaranteed layout) ── */}
+        {/* ── PINTEREST MASONRY GRID ── */}
         {!loading && filtered.length > 0 && (
           <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: 20,
+            columns: "220px 3",
+            columnGap: "20px",
           }}>
-            {filtered.map((prompt, idx) => {
-              const imgSrc = getImgSrc(prompt);
-              const hasImage = isBase64Image(imgSrc);
-              return (
-                <div key={prompt.id} style={{
-                  background: "var(--bg)",
-                  borderRadius: 24,
-                  boxShadow: "8px 8px 20px var(--sh-dark), -8px -8px 20px var(--sh-light)",
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "transform 0.2s, box-shadow 0.2s",
+            {filtered.map((prompt) => (
+              <div key={prompt.id} style={{
+                breakInside: "avoid",
+                marginBottom: "20px",
+                background: "var(--bg)",
+                borderRadius: 24,
+                boxShadow: "8px 8px 20px var(--sh-dark), -8px -8px 20px var(--sh-light)",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                cursor: "default",
+              }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "14px 14px 32px var(--sh-dark), -14px -14px 32px var(--sh-light)";
                 }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "12px 12px 28px var(--sh-dark), -12px -12px 28px var(--sh-light)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "8px 8px 20px var(--sh-dark), -8px -8px 20px var(--sh-light)";
-                  }}
-                >
-                  {/* ── IMAGE SECTION (always at top if available) ── */}
-                  {hasImage ? (
-                    <div style={{
-                      background: "#ddd", padding: "10px 10px 0",
-                      flexShrink: 0,
-                    }}>
-                      <div style={{ borderRadius: 16, overflow: "hidden", background: "var(--bg-deep)" }}>
-                        <img
-                          src={imgSrc}
-                          alt={`Prompt thumbnail ${idx + 1}`}
-                          onError={() => handleImgError(prompt.id)}
-                          style={{
-                            width: "100%",
-                            height: 200,
-                            objectFit: "cover",
-                            display: "block",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{
-                      background: "linear-gradient(135deg, var(--primary-dark), var(--primary))",
-                      padding: "20px 10px 0",
-                      flexShrink: 0,
-                    }}>
-                      <div style={{
-                        borderRadius: "16px 16px 0 0",
-                        height: 80,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}>
-                        <Wand2 size={28} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
-                      </div>
-                    </div>
-                  )}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "8px 8px 20px var(--sh-dark), -8px -8px 20px var(--sh-light)";
+                }}
+              >
+                {/* ── IMAGE (Pinterest style – full width, real aspect ratio) ── */}
+                <ImageBlock prompt={prompt} />
 
-                  {/* ── CONTENT SECTION ── */}
-                  <div style={{ padding: "16px 18px 18px", flex: 1, display: "flex", flexDirection: "column" }}>
-                    {/* Meta */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, padding: "2px 9px", borderRadius: 20,
-                          background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
-                          color: "white",
-                        }}>
-                          {prompt.language.toUpperCase()}
-                        </span>
-                        <span style={{ fontSize: 9, color: "var(--text-soft)", fontWeight: 500 }}>
-                          @{prompt.userName || "guest"}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: 9, color: "var(--text-soft)" }}>
-                        {new Date(prompt.createdAt).toLocaleDateString()}
+                {/* ── CONTENT ── */}
+                <div style={{ padding: "14px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
+
+                  {/* Meta row */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, padding: "2px 9px", borderRadius: 20,
+                        background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
+                        color: "white",
+                      }}>
+                        {prompt.language.toUpperCase()}
+                      </span>
+                      <span style={{ fontSize: 9, color: "var(--text-soft)", fontWeight: 500 }}>
+                        @{prompt.userName || "guest"}
                       </span>
                     </div>
+                    <span style={{ fontSize: 9, color: "var(--text-soft)" }}>
+                      {new Date(prompt.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
 
-                    {/* Text */}
-                    <div style={{ flex: 1 }}>
-                      <p style={{
-                        fontFamily: "JetBrains Mono, monospace",
-                        fontSize: 10.5,
-                        color: "var(--text)",
-                        lineHeight: 1.75,
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        overflow: "hidden",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 6,
-                        WebkitBoxOrient: "vertical",
-                      }}>
-                        {prompt.plainText}
-                      </p>
-                    </div>
+                  {/* Prompt text */}
+                  <div style={{ flex: 1 }}>
+                    <p style={{
+                      fontFamily: "JetBrains Mono, monospace",
+                      fontSize: 10.5,
+                      color: "var(--text)",
+                      lineHeight: 1.75,
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 7,
+                      WebkitBoxOrient: "vertical",
+                    }}>
+                      {prompt.plainText}
+                    </p>
+                  </div>
 
-                    {/* Actions */}
-                    <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
-                      <button
-                        onClick={() => handleCopy(prompt.plainText, "Text")}
-                        style={{
+                  {/* Action buttons */}
+                  <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+                    <button onClick={() => handleCopy(prompt.plainText, "Text")} style={{
+                      flex: 1, minWidth: 60,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                      padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
+                      background: "var(--bg)", color: "var(--text)",
+                      fontSize: 10, fontWeight: 600,
+                      fontFamily: "Outfit, sans-serif",
+                      boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
+                    }}>
+                      <Copy size={10} strokeWidth={2.5} /> Copy
+                    </button>
+
+                    <button onClick={() => handleShare(prompt)} style={{
+                      flex: 1, minWidth: 60,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                      padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
+                      background: "var(--bg)", color: "var(--text)",
+                      fontSize: 10, fontWeight: 600,
+                      fontFamily: "Outfit, sans-serif",
+                      boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
+                    }}>
+                      <Share2 size={10} strokeWidth={2.5} /> Share
+                    </button>
+
+                    {canModify(prompt) && (
+                      <>
+                        <button onClick={() => setActivePrompt(prompt)} style={{
                           flex: 1, minWidth: 60,
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                           padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                          background: "var(--bg)",
-                          color: "var(--text)",
+                          background: "var(--bg)", color: "var(--text)",
                           fontSize: 10, fontWeight: 600,
                           fontFamily: "Outfit, sans-serif",
                           boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                        }}
-                      >
-                        <Copy size={10} strokeWidth={2.5} /> Copy
-                      </button>
-
-                      <button
-                        onClick={() => handleShare(prompt)}
-                        style={{
+                        }}>
+                          <Edit3 size={10} strokeWidth={2.5} /> Edit
+                        </button>
+                        <button onClick={() => handleDelete(prompt.id)} style={{
                           flex: 1, minWidth: 60,
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                           padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                          background: "var(--bg)",
-                          color: "var(--text)",
+                          background: "var(--bg)", color: "#e74c3c",
                           fontSize: 10, fontWeight: 600,
                           fontFamily: "Outfit, sans-serif",
                           boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                        }}
-                      >
-                        <Share2 size={10} strokeWidth={2.5} /> Share
-                      </button>
-
-                      {canModify(prompt) && (
-                        <>
-                          <button
-                            onClick={() => setActivePrompt(prompt)}
-                            style={{
-                              flex: 1, minWidth: 60,
-                              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                              padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                              background: "var(--bg)",
-                              color: "var(--text)",
-                              fontSize: 10, fontWeight: 600,
-                              fontFamily: "Outfit, sans-serif",
-                              boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                            }}
-                          >
-                            <Edit3 size={10} strokeWidth={2.5} /> Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(prompt.id)}
-                            style={{
-                              flex: 1, minWidth: 60,
-                              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                              padding: "7px 8px", borderRadius: 12, border: "none", cursor: "pointer",
-                              background: "var(--bg)",
-                              color: "#e74c3c",
-                              fontSize: 10, fontWeight: 600,
-                              fontFamily: "Outfit, sans-serif",
-                              boxShadow: "3px 3px 8px var(--sh-dark), -3px -3px 8px var(--sh-light)",
-                            }}
-                          >
-                            <Trash2 size={10} strokeWidth={2.5} /> Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
+                        }}>
+                          <Trash2 size={10} strokeWidth={2.5} /> Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Stats footer */}
+        {/* Stats */}
         {!loading && filtered.length > 0 && (
           <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-soft)", paddingBottom: 20 }}>
             Showing {filtered.length} of {library.length} prompt{library.length !== 1 ? "s" : ""}
@@ -464,11 +450,7 @@ export default function LibraryPage() {
       </main>
 
       {activePrompt && (
-        <EditModal
-          prompt={activePrompt}
-          onClose={() => setActivePrompt(null)}
-          onSave={handleSave}
-        />
+        <EditModal prompt={activePrompt} onClose={() => setActivePrompt(null)} onSave={handleSave} />
       )}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToToast(null)} />}
     </div>
