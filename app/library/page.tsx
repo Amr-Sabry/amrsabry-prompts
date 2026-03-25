@@ -22,7 +22,8 @@ function useImageDimensions(src: string) {
 function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   const imgSrc = prompt.imageThumbnail || "";
   const dims = useImageDimensions(imgSrc);
-  const aspectRatio = dims ? dims.h / dims.w : 0.5625;
+  // aspect-ratio: "w/h" e.g. "1920/1080" for landscape, "1080/1920" for portrait
+  const aspectRatio = dims ? `${dims.w}/${dims.h}` : "16/9";
 
   if (!imgSrc) {
     return (
@@ -53,8 +54,8 @@ function ImageBlock({ prompt }: { prompt: SavedPrompt }) {
   }
 
   return (
-    <div style={{ position: "relative", borderRadius: "18px 18px 0 0", overflow: "hidden" }}>
-      <div style={{ aspectRatio: `1/${aspectRatio}`, maxHeight: 220 }}>
+    <div style={{ position: "relative", borderRadius: "18px 18px 0 0", overflow: "hidden", background: "#c8cdd8" }}>
+      <div style={{ aspectRatio }}>
         <img
           src={imgSrc}
           alt="Prompt thumbnail"
@@ -148,6 +149,9 @@ export default function LibraryPage() {
       )
     : library;
 
+  const cardShadow = "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)";
+  const cardShadowHover = "12px 12px 28px rgba(163,177,198,0.8), -12px -12px 28px rgba(255,255,255,1)";
+
   return (
     <div style={{
       minHeight: "100vh",
@@ -156,7 +160,7 @@ export default function LibraryPage() {
       color: "#1e2130",
     }}>
 
-            {/* ── SHARED HEADER ── }
+      {/* ── SHARED HEADER ── */}
       <Header />
 
       {/* ── MAIN ── */}
@@ -264,9 +268,9 @@ export default function LibraryPage() {
               <div key={prompt.id} style={{
                 breakInside: "avoid",
                 marginBottom: "22px",
-                background: "#dde1ec",
+                background: "#e8ecf4",
                 borderRadius: 22,
-                boxShadow: "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)",
+                boxShadow: cardShadow,
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
@@ -275,14 +279,14 @@ export default function LibraryPage() {
               }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "12px 12px 28px rgba(163,177,198,0.8), -12px -12px 28px rgba(255,255,255,1)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = cardShadowHover;
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "8px 8px 20px rgba(163,177,198,0.72), -8px -8px 20px rgba(255,255,255,0.95)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = cardShadow;
                 }}
               >
-                {/* ── IMAGE ── */}
+                {/* ── IMAGE: natural aspect ratio, Pinterest style ── */}
                 <ImageBlock prompt={prompt} />
 
                 {/* ── CONTENT ── */}
