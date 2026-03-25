@@ -166,43 +166,47 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* ===== BENTO GRID ===== */}
+        {/* ===== MASONRY BENTO GRID ===== */}
         {!loading && filtered.length > 0 && (
           <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
-            gap: "18px",
-            alignItems: "start",
+            columns: "280px",
+            columnGap: "18px",
           }}>
             {filtered.map((prompt) => (
               <div
                 key={prompt.id}
                 className="neu-raised-sm"
-                style={{ overflow: "hidden", cursor: "pointer", transition: "transform 0.15s ease", padding: "0" }}
+                style={{
+                  breakInside: "avoid",
+                  marginBottom: "18px",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  transition: "transform 0.15s ease",
+                  padding: "0",
+                }}
                 onClick={() => setActivePrompt(prompt)}
               >
-                {/* Full image — max size, no crop */}
+                {/* Image — original ratio, no crop */}
                 {prompt.imageThumbnail && (
                   <div style={{
                     background: "var(--bg-deep)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "12px",
-                    minHeight: "160px",
-                    maxHeight: "260px",
-                    overflow: "hidden",
+                    display: "block",
+                    padding: "0",
                   }}>
                     <img
                       src={prompt.imageThumbnail}
                       alt="Prompt source"
                       style={{
-                        maxWidth: "100%",
-                        maxHeight: "236px",
-                        objectFit: "contain",
-                        borderRadius: "10px",
-                        display: "block",
                         width: "100%",
+                        height: "auto",
+                        display: "block",
+                        borderRadius: "0",
+                      }}
+                      onLoad={(e) => {
+                        const img = e.currentTarget;
+                        if (img.parentElement) {
+                          img.parentElement.style.padding = "0";
+                        }
                       }}
                     />
                   </div>
