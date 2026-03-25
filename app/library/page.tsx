@@ -37,8 +37,21 @@ export default function LibraryPage() {
     if (activePrompt?.id === id) setActivePrompt(null);
   };
 
-  const handleCopy = (text: string, label: string) => {
+        const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
+        const handleShare = async (prompt: SavedPrompt) => {
+        const shareData = {
+          title: "AmrSabry-prompts",
+          text: prompt.plainText,
+        };
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+          try { await navigator.share(shareData); } catch {}
+        } else {
+          navigator.clipboard.writeText(prompt.plainText);
+          showToast("Prompt copied!", "success");
+        }
+      };
+
       showToast(`${label} copied!`, "success");
     });
   };
@@ -241,6 +254,15 @@ export default function LibraryPage() {
                       </span>
                     </div>
                     <div style={{ display: "flex", gap: "5px" }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleShare(prompt); }}
+                        className="neu-btn neu-btn-sm"
+                        style={{ padding: "5px 9px", fontSize: "10px", gap: "3px" }}
+                        title="Share"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        Share
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleCopy(prompt.plainText, "Text"); }}
                         className="neu-btn neu-btn-sm"
