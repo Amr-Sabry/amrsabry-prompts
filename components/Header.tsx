@@ -16,9 +16,13 @@ export default function Header() {
   return (
     <header style={{
       position: "sticky", top: 0, zIndex: 40,
-      background: "#dde1ec",
-      boxShadow: "0 4px 20px rgba(163,177,198,0.4), 0 1px 0 rgba(255,255,255,0.8)",
+      background: "rgba(221,225,236,0.92)",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
+      boxShadow: "0 8px 32px rgba(163,177,198,0.35), 0 1px 0 rgba(255,255,255,0.8)",
       width: "100%",
+      borderRadius: "0 0 28px 28px",
+      overflow: "hidden",
     }}>
       <div style={{
         maxWidth: 1100,
@@ -62,7 +66,7 @@ export default function Header() {
           <div style={{
             display: "inline-flex", alignItems: "center",
             padding: "4px",
-            borderRadius: "50px",
+            borderRadius: 50,
             background: "#dde1ec",
             boxShadow: "inset 3px 3px 8px rgba(163,177,198,0.6), inset -3px -3px 8px rgba(255,255,255,0.9)",
           }}>
@@ -120,7 +124,7 @@ export default function Header() {
               <div style={{
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "4px 6px 4px 10px",
-                borderRadius: "50px",
+                borderRadius: 50,
                 background: "#dde1ec",
                 boxShadow: "3px 3px 8px rgba(163,177,198,0.6), -3px -3px 8px rgba(255,255,255,0.9)",
               }}>
