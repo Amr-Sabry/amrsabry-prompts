@@ -1,11 +1,20 @@
+export interface User {
+  id: string;
+  username: string;
+  role: "admin" | "user";
+  createdAt: string;
+}
+
 export interface SavedPrompt {
   id: string;
   plainText: string;
   jsonText: string;
-  imageThumbnail: string; // base64 small preview
+  imageThumbnail: string;
   language: string;
   confidence: number;
-  createdAt: string; // ISO timestamp
+  createdAt: string;
+  userId: string;
+  userName: string;
 }
 
 export interface OCRResult {

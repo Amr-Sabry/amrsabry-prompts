@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
-import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
+import { Wand2 } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import TabNav from "@/components/TabNav";
 import CopyButton from "@/components/CopyButton";
 import Toast from "@/components/Toast";
@@ -8,6 +9,7 @@ import { OCRResult, SavedPrompt } from "@/types/prompt";
 import { createWorker } from "tesseract.js";
 
 export default function ExtractPage() {
+  const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -57,6 +59,7 @@ export default function ExtractPage() {
 
   const handleSave = useCallback(async () => {
     if (!editedText) return;
+    if (!session) { window.location.href = "/login"; return; }
     try {
       let imageData = "";
       if (imageFile) {
@@ -66,7 +69,7 @@ export default function ExtractPage() {
           reader.readAsDataURL(imageFile);
         });
       }
-      const saved: SavedPrompt = {
+      const saved = {
         id: crypto.randomUUID(),
         plainText: editedText,
         jsonText: JSON.stringify({ text: editedText, language: ocrResult?.language || "unknown", confidence: ocrResult?.confidence || 0, format: "plain" }, null, 2),
@@ -74,15 +77,24 @@ export default function ExtractPage() {
         language: ocrResult?.language || "unknown",
         confidence: ocrResult?.confidence || 0,
         createdAt: new Date().toISOString(),
+        userId: session.user.id,
+        userName: session.user.username,
       };
-      const res = await fetch("/api/prompts");
-      const stored: SavedPrompt[] = await res.json().catch(() => []);
-      await fetch("/api/prompts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify([saved, ...stored]) });
-      setToast({ message: "Saved to Library!", type: "success" });
+      const res = await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save", prompt: saved }),
+      });
+      if (res.ok) {
+        setToast({ message: "Saved to Library!", type: "success" });
+      } else {
+        const err = await res.json();
+        setToast({ message: err.error || "Failed to save.", type: "error" });
+      }
     } catch {
       setToast({ message: "Failed to save.", type: "error" });
     }
-  }, [editedText, imageFile, ocrResult]);
+  }, [editedText, imageFile, ocrResult, session]);
 
   const handleClear = () => {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
@@ -124,7 +136,17 @@ export default function ExtractPage() {
               <p style={{ fontSize: 10, color: "var(--text-soft)", fontWeight: 500, letterSpacing: "0.02em" }}>Extract • Edit • Save</p>
             </div>
           </div>
-          <TabNav />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {session ? (
+                    <>
+                      <span style={{ fontSize: 11, color: "var(--text-soft)" }}>@{session.user.username}</span>
+                      <button onClick={() => signOut({ callbackUrl: "/login" })} className="neu-btn neu-btn-sm" style={{ fontSize: 10, padding: "5px 10px" }}>Logout</button>
+                    </>
+                  ) : (
+                    <a href="/login" className="neu-btn neu-btn-sm" style={{ fontSize: 10, padding: "5px 10px", textDecoration: "none" }}>Login</a>
+                  )}
+                  <TabNav />
+                </div>
         </div>
       </header>
 
