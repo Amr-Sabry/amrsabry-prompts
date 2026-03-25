@@ -14,16 +14,27 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [activePrompt, setActivePrompt] = useState<SavedPrompt | null>(null);
 
+  // Load from GitHub Gist API on mount
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      setLibrary(stored);
-    } catch {
-      setLibrary([]);
-    } finally {
-      setLoading(false);
-    }
+    fetch("/api/prompts")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setLibrary(data);
+      })
+      .catch(() => setLibrary([]))
+      .finally(() => setLoading(false));
   }, []);
+
+  // Sync library to Gist API
+  const syncGist = async (updated: SavedPrompt[]) => {
+    try {
+      await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+    } catch {}
+  };
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
     setToast({ message, type });
@@ -32,7 +43,7 @@ export default function LibraryPage() {
   const handleDelete = (id: string) => {
     const updated = library.filter((p) => p.id !== id);
     setLibrary(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    syncGist(updated);
     showToast("Prompt deleted.", "info");
     if (activePrompt?.id === id) setActivePrompt(null);
   };
@@ -317,7 +328,7 @@ export default function LibraryPage() {
               const next = [...library];
               next[idx] = updated;
               setLibrary(next);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+              syncGist(next);
               showToast("Saved!", "success");
             }
             setActivePrompt(null);

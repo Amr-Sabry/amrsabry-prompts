@@ -75,8 +75,14 @@ export default function ExtractPage() {
         createdAt: new Date().toISOString(),
       };
 
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([saved, ...stored]));
+      const res = await fetch("/api/prompts");
+      const stored: SavedPrompt[] = await res.json().catch(() => []);
+      const updated = [saved, ...stored];
+      await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
       setToast({ message: "Saved to Library!", type: "success" });
     } catch {
       setToast({ message: "Failed to save.", type: "error" });
