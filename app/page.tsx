@@ -4,6 +4,7 @@ import { Wand2, X, Edit3, Check, RotateCcw } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import CopyButton from "@/components/CopyButton";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import Toast from "@/components/Toast";
 import { OCRResult } from "@/types/prompt";
 import { createWorker } from "tesseract.js";
@@ -51,14 +52,11 @@ export default function ExtractPage() {
     setImageUrl(url);
     setImageFile(file);
     try {
-      const worker = await createWorker("eng+ara");
+      const worker = await createWorker("eng");
       const { data } = await worker.recognize(url);
       await worker.terminate();
       const text = data.text.trim();
-      const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
-      const totalChars = text.replace(/\s/g, "").length;
-      const lang = totalChars > 0 && arabicChars / totalChars > 0.3 ? "ara" : "eng";
-      setOcrResult({ plainText: text, language: lang, confidence: data.confidence / 100 });
+      setOcrResult({ plainText: text, language: "eng", confidence: data.confidence / 100 });
       setEditedText(text);
     } catch {
       setToast({ message: "OCR failed. Try another image.", type: "error" });
@@ -214,10 +212,10 @@ export default function ExtractPage() {
         {/* Processing */}
         {isProcessing && (
           <div style={{ background: C.bg, borderRadius: 20, boxShadow: inset, padding: "24px 28px", display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 22, height: 22, borderRadius: "50%", border: `2.5px solid rgba(124,58,237,0.2)`, borderTopColor: C.primary, animation: "spin 0.7s linear infinite", flexShrink: 0 }} />
+            <LoadingSpinner size="sm" />
             <div>
               <p style={{ fontSize: 15, fontWeight: 700, color: C.text }}>Recognizing text...</p>
-              <p style={{ fontSize: 11, color: C.textSoft, marginTop: 3 }}>Powered by Tesseract.js â€” runs locally in your browser</p>
+              <p style={{ fontSize: 11, color: C.textSoft, marginTop: 3 }}>Powered by Tesseract.js — runs locally in your browser</p>
             </div>
           </div>
         )}

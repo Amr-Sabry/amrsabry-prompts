@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Users, Trash2, Plus, UserCheck } from "lucide-react";
 import Toast from "@/components/Toast";
 
@@ -27,11 +28,9 @@ export default function AdminPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid rgba(124,58,237,0.2)", borderTopColor: "var(--primary)", animation: "spin 0.7s linear infinite", margin: "0 auto 16px" }} />
-          <p style={{ color: "var(--text-soft)", fontFamily: "Outfit" }}>Loading...</p>
-        </div>
+      <div style={{ minHeight: "100vh", background: "#dde1ec", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
+        <LoadingSpinner label="Loading..." />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
