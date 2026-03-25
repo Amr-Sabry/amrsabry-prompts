@@ -9,12 +9,9 @@ export default auth(function middleware(req: NextRequest & { auth: any }) {
   if (pathname.startsWith("/admin") && !isLoggedIn) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
-  if (pathname.startsWith("/library") && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/library/:path*"],
+  matcher: ["/admin/:path*"],
 };

@@ -139,7 +139,22 @@ export default function ExtractPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   {session ? (
                     <>
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
+                        background: session.user.role === "admin"
+                          ? "linear-gradient(135deg, var(--primary), var(--primary-dark))"
+                          : "var(--bg)",
+                        color: session.user.role === "admin" ? "white" : "var(--text-muted)",
+                        boxShadow: session.user.role !== "admin"
+                          ? "2px 2px 6px var(--sh-dark), -2px -2px 6px var(--sh-light)"
+                          : "2px 2px 6px rgba(124,58,237,0.3)",
+                      }}>
+                        {session.user.role.toUpperCase()}
+                      </span>
                       <span style={{ fontSize: 11, color: "var(--text-soft)" }}>@{session.user.username}</span>
+                      {session.user.role === "admin" && (
+                        <a href="/admin" style={{ fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "var(--bg)", color: "var(--text-muted)", textDecoration: "none", boxShadow: "2px 2px 6px var(--sh-dark), -2px -2px 6px var(--sh-light)" }}>Admin</a>
+                      )}
                       <button onClick={() => signOut({ callbackUrl: "/login" })} className="neu-btn neu-btn-sm" style={{ fontSize: 10, padding: "5px 10px" }}>Logout</button>
                     </>
                   ) : (
