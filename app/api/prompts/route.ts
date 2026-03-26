@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const updated = await atomicWrite(action, prompt, session.user as { id: string; username: string; role: string });
+    const updated = await atomicWrite(action as "save" | "update" | "delete", prompt as Partial<SavedPrompt> & { id: string }, session.user as { id: string; username: string; role: string });
     return NextResponse.json({ ok: true, prompts: updated });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Server error";

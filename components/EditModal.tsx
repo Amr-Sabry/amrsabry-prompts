@@ -45,7 +45,12 @@ export default function EditModal({ prompt, onClose, onSave }: EditModalProps) {
   const hasImageChanged = imageThumbnail !== prompt.imageThumbnail;
 
   const handleSave = () => {
-    onSave({ ...prompt, plainText, language, jsonText, imageThumbnail });
+    // Only include imageThumbnail if it actually changed, to avoid wiping the field
+    const updated = { ...prompt, plainText, language, jsonText };
+    if (imageThumbnail !== prompt.imageThumbnail) {
+      updated.imageThumbnail = imageThumbnail;
+    }
+    onSave(updated as SavedPrompt);
   };
 
   return (
