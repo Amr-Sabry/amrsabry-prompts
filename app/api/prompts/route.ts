@@ -5,36 +5,54 @@ import { SavedPrompt } from "@/types/prompt";
 const PROMPTS_GIST_URL = process.env.PROMPTS_GIST_URL || "https://api.github.com/gists/a1813d8fccf42a2e3107143e0bd127a3";
 const GH_TOKEN = process.env.GH_TOKEN!;
 
-async function getGist(url: string) {
-  return fetch(url, {
-    headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
-    next: { revalidate: 0 },
-  });
-}
+const ghHeaders = {
+  Authorization: `Bearer ${GH_TOKEN}`,
+  Accept: "application/vnd.github+json",
+  "X-GitHub-Api-Version": "2022-11-28",
+};
 
-async function patchGist(body: object) {
-  return fetch(PROMPTS_GIST_URL, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GH_TOKEN}`, "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28" },
-    body: JSON.stringify(body),
-  });
-}
-
+// Get prompts with retry — returns current state or empty array on failure
 async function getPrompts(): Promise<SavedPrompt[]> {
   try {
-    const res = await getGist(PROMPTS_GIST_URL);
-    if (!res.ok) {
-      console.error("[getPrompts] Gist fetch failed:", res.status, await res.text());
-      return [];
-    }
+    const res = await fetch(PROMPTS_GIST_URL, {
+      headers: ghHeaders,
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
     const data = await res.json();
     const content = data.files?.["prompts.json"]?.content;
     if (!content) return [];
     return JSON.parse(content) as SavedPrompt[];
-  } catch (err) {
-    console.error("[getPrompts] Error:", err);
+  } catch {
     return [];
   }
+}
+
+// Write prompts to Gist with retry
+async function writePrompts(prompts: SavedPrompt[]): Promise<{ ok: boolean; error?: string }> {
+  const payload = JSON.stringify(prompts, null, 2);
+  // GitHub Gist has 8MB limit — warn if approaching
+  if (payload.length > 7_000_000) {
+    return { ok: false, error: "Library is too large to save. Please delete some prompts." };
+  }
+
+  let lastError = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(PROMPTS_GIST_URL, {
+        method: "PATCH",
+        headers: { ...ghHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ files: { "prompts.json": { content: payload } } }),
+      });
+      if (res.ok) return { ok: true };
+      lastError = `Attempt ${attempt + 1}: ${res.status}`;
+      // If conflict (409), wait and retry — another write might have happened
+      if (res.status === 409) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+    } catch (err) {
+      lastError = `Attempt ${attempt + 1}: ${String(err)}`;
+    }
+  }
+  return { ok: false, error: lastError };
 }
 
 // GET /api/prompts — anyone can read (guest too)
@@ -63,70 +81,69 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Prompt ID is required" }, { status: 400 });
   }
 
-  try {
+  // ── SAVE: create new prompt ─────────────────────────────────────────────────
+  if (action === "save") {
+    if (!prompt.plainText) {
+      return NextResponse.json({ error: "plainText is required" }, { status: 400 });
+    }
+    const newPrompt: SavedPrompt = {
+      id: prompt.id || (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+      plainText: prompt.plainText,
+      jsonText: prompt.jsonText || JSON.stringify({ text: prompt.plainText, language: prompt.language || "eng", confidence: 0, format: "plain" }, null, 2),
+      imageThumbnail: prompt.imageThumbnail || "",
+      language: prompt.language || "eng",
+      confidence: prompt.confidence ?? 0,
+      createdAt: new Date().toISOString(),
+      userId: session.user.id,
+      userName: session.user.username,
+    };
+    const prompts = await getPrompts();
+    prompts.unshift(newPrompt);
+    const result = await writePrompts(prompts);
+    if (!result.ok) return NextResponse.json({ error: result.error || "Save failed" }, { status: 500 });
+    return NextResponse.json({ ok: true, saved: newPrompt });
+
+  // ── UPDATE: edit existing prompt ────────────────────────────────────────────
+  } else if (action === "update") {
     const prompts = await getPrompts();
     const idx = prompts.findIndex((p) => p.id === prompt.id);
-
-    if (action === "save") {
-      // Validate required fields
-      if (!prompt.plainText) {
-        return NextResponse.json({ error: "plainText is required" }, { status: 400 });
-      }
-      const newPrompt: SavedPrompt = {
-        id: prompt.id || crypto.randomUUID(),
-        plainText: prompt.plainText,
-        jsonText: prompt.jsonText || JSON.stringify({ text: prompt.plainText, language: prompt.language || "eng", confidence: 0, format: "plain" }, null, 2),
-        imageThumbnail: prompt.imageThumbnail || "",
-        language: prompt.language || "eng",
-        confidence: prompt.confidence ?? 0,
-        createdAt: new Date().toISOString(),
-        userId: session.user.id,
-        userName: session.user.username,
-      };
-      prompts.unshift(newPrompt);
-
-    } else if (action === "update") {
-      if (idx === -1) {
-        return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
-      }
-      // Only owner or admin can update
-      if (prompts[idx].userId !== session.user.id && session.user.role !== "admin") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-      // Merge: keep existing fields that aren't in prompt
-      prompts[idx] = {
-        ...prompts[idx],
-        ...prompt,
-        id: prompts[idx].id, // always keep original id
-        userId: prompts[idx].userId, // always keep original userId
-        userName: prompts[idx].userName, // always keep original userName
-        createdAt: prompts[idx].createdAt, // always keep original createdAt
-      };
-
-    } else if (action === "delete") {
-      if (idx === -1) {
-        return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
-      }
-      if (prompts[idx].userId !== session.user.id && session.user.role !== "admin") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-      prompts.splice(idx, 1);
-
-    } else {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    if (idx === -1) {
+      return NextResponse.json({ error: "Prompt not found — it may have been deleted" }, { status: 404 });
     }
-
-    const res = await patchGist({ files: { "prompts.json": { content: JSON.stringify(prompts, null, 2) } } });
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("[PATCH Gist] Failed:", res.status, errText);
-      return NextResponse.json({ error: `Gist write failed: ${res.status}` }, { status: 500 });
+    if (prompts[idx].userId !== session.user.id && session.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+    // Preserve immutable fields from the stored prompt
+    const stored = prompts[idx];
+    prompts[idx] = {
+      ...stored,
+      ...prompt,
+      id: stored.id,
+      userId: stored.userId,
+      userName: stored.userName,
+      createdAt: stored.createdAt,
+    };
+    const result = await writePrompts(prompts);
+    if (!result.ok) return NextResponse.json({ error: result.error || "Update failed" }, { status: 500 });
+    return NextResponse.json({ ok: true, updated: prompts[idx] });
 
-    return NextResponse.json({ ok: true, prompts });
+  // ── DELETE: remove prompt ───────────────────────────────────────────────────
+  } else if (action === "delete") {
+    const prompts = await getPrompts();
+    const idx = prompts.findIndex((p) => p.id === prompt.id);
+    if (idx === -1) {
+      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+    }
+    if (prompts[idx].userId !== session.user.id && session.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    prompts.splice(idx, 1);
+    const result = await writePrompts(prompts);
+    if (!result.ok) return NextResponse.json({ error: result.error || "Delete failed" }, { status: 500 });
+    return NextResponse.json({ ok: true });
 
-  } catch (err) {
-    console.error("[POST /api/prompts] Unexpected error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  // ── INVALID ACTION ─────────────────────────────────────────────────────────
+  } else {
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 }
