@@ -184,9 +184,14 @@ export default function LibraryPage() {
     navigator.clipboard.writeText(text).then(() => showToast(`${label} copied!`, "success"));
   };
 
-  const canModify = (prompt: SavedPrompt) => {
+  // Admin can delete any prompt; owners can only edit their own
+  const canEdit = (prompt: SavedPrompt) => {
     if (!session) return false;
     return session.user.role === "admin" || session.user.id === prompt.userId;
+  };
+  const canDelete = (prompt: SavedPrompt) => {
+    if (!session) return false;
+    return session.user.role === "admin";
   };
 
   const filtered = search.trim()
@@ -378,7 +383,7 @@ export default function LibraryPage() {
                       <Share2 size={10} strokeWidth={2.5} /> Share
                     </button>
 
-                    {canModify(prompt) && (
+                    {canEdit(prompt) && (
                       <>
                         <button onClick={() => setActivePrompt(prompt)} style={{
                           flex: 1, minWidth: 60,
@@ -399,24 +404,26 @@ export default function LibraryPage() {
                         >
                           <Edit3 size={10} strokeWidth={2.5} /> Edit
                         </button>
-                        <button onClick={() => handleDelete(prompt.id)} style={{
-                          flex: 1, minWidth: 60,
-                          display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                          padding: "8px 6px", borderRadius: 12, border: "none", cursor: "pointer",
-                          background: C.bg, color: C.danger, fontSize: 10, fontWeight: 700,
-                          fontFamily: "Orbitron, sans-serif", boxShadow: raised, transition: "all 0.2s",
-                          letterSpacing: "0.04em",
-                        }}
-                          onMouseEnter={(e) => {
-                            (e.target as HTMLButtonElement).style.boxShadow = `inset 3px 3px 8px ${C.insetDark}, inset -3px -3px 8px ${C.insetLight}`;
-                          }}
-                          onMouseLeave={(e) => {
-                            (e.target as HTMLButtonElement).style.boxShadow = raised;
-                          }}
-                        >
-                          <Trash2 size={10} strokeWidth={2.5} /> Delete
-                        </button>
                       </>
+                    )}
+                    {canDelete(prompt) && (
+                      <button onClick={() => handleDelete(prompt.id)} style={{
+                        flex: 1, minWidth: 60,
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                        padding: "8px 6px", borderRadius: 12, border: "none", cursor: "pointer",
+                        background: C.bg, color: C.danger, fontSize: 10, fontWeight: 700,
+                        fontFamily: "Orbitron, sans-serif", boxShadow: raised, transition: "all 0.2s",
+                        letterSpacing: "0.04em",
+                      }}
+                        onMouseEnter={(e) => {
+                          (e.target as HTMLButtonElement).style.boxShadow = `inset 3px 3px 8px ${C.insetDark}, inset -3px -3px 8px ${C.insetLight}`;
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.target as HTMLButtonElement).style.boxShadow = raised;
+                        }}
+                      >
+                        <Trash2 size={10} strokeWidth={2.5} /> Delete
+                      </button>
                     )}
                   </div>
                 </div>
