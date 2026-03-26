@@ -11,64 +11,116 @@ const ghHeaders = {
   "X-GitHub-Api-Version": "2022-11-28",
 };
 
-// Get prompts with retry — returns current state or empty array on failure
-async function getPrompts(): Promise<SavedPrompt[]> {
+// Read current prompts — returns null on failure (NOT empty array)
+async function readPrompts(): Promise<SavedPrompt[] | null> {
   try {
-    const res = await fetch(PROMPTS_GIST_URL, {
-      headers: ghHeaders,
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
+    const res = await fetch(PROMPTS_GIST_URL, { headers: ghHeaders, cache: "no-store" });
+    if (!res.ok) return null;
     const data = await res.json();
     const content = data.files?.["prompts.json"]?.content;
-    if (!content) return [];
+    if (!content) return null;
     return JSON.parse(content) as SavedPrompt[];
   } catch {
-    return [];
+    return null;
   }
 }
 
-// Write prompts to Gist with retry
-async function writePrompts(prompts: SavedPrompt[]): Promise<{ ok: boolean; error?: string }> {
-  const payload = JSON.stringify(prompts, null, 2);
-  // GitHub Gist has 8MB limit — warn if approaching
-  if (payload.length > 7_000_000) {
-    return { ok: false, error: "Library is too large to save. Please delete some prompts." };
-  }
-
+// Atomic write: fetch → mutate → write with retry
+// Returns updated prompts array on success, throws on failure
+async function atomicWrite(
+  action: "save" | "update" | "delete",
+  promptData: Partial<SavedPrompt> & { id: string },
+  sessionUser: { id: string; username: string; role: string }
+): Promise<SavedPrompt[]> {
+  const MAX_RETRIES = 5;
   let lastError = "";
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(PROMPTS_GIST_URL, {
-        method: "PATCH",
-        headers: { ...ghHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ files: { "prompts.json": { content: payload } } }),
-      });
-      if (res.ok) return { ok: true };
-      lastError = `Attempt ${attempt + 1}: ${res.status}`;
-      // If conflict (409), wait and retry — another write might have happened
-      if (res.status === 409) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
-    } catch (err) {
-      lastError = `Attempt ${attempt + 1}: ${String(err)}`;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    // Read current state
+    const prompts = await readPrompts();
+    if (prompts === null) {
+      throw new Error("Cannot read library from storage. Check your Gist token and URL.");
+    }
+
+    if (action === "save") {
+      if (!promptData.plainText) throw new Error("plainText is required");
+      const newPrompt: SavedPrompt = {
+        id: promptData.id || (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+        plainText: promptData.plainText,
+        jsonText: promptData.jsonText || JSON.stringify({ text: promptData.plainText, language: promptData.language || "eng", confidence: 0, format: "plain" }, null, 2),
+        imageThumbnail: promptData.imageThumbnail || "",
+        language: promptData.language || "eng",
+        confidence: promptData.confidence ?? 0,
+        createdAt: new Date().toISOString(),
+        userId: sessionUser.id,
+        userName: sessionUser.username,
+      };
+      prompts.unshift(newPrompt);
+
+    } else if (action === "update") {
+      const idx = prompts.findIndex((p) => p.id === promptData.id);
+      if (idx === -1) throw new Error("Prompt not found");
+      if (prompts[idx].userId !== sessionUser.id && sessionUser.role !== "admin") {
+        throw new Error("Forbidden");
+      }
+      const stored = prompts[idx];
+      prompts[idx] = {
+        ...stored,
+        ...promptData,
+        id: stored.id,
+        userId: stored.userId,
+        userName: stored.userName,
+        createdAt: stored.createdAt,
+      };
+
+    } else if (action === "delete") {
+      const idx = prompts.findIndex((p) => p.id === promptData.id);
+      if (idx === -1) throw new Error("Prompt not found");
+      if (prompts[idx].userId !== sessionUser.id && sessionUser.role !== "admin") {
+        throw new Error("Forbidden");
+      }
+      prompts.splice(idx, 1);
+    }
+
+    // Write with retry on conflict
+    const payload = JSON.stringify(prompts, null, 2);
+    if (payload.length > 7_500_000) {
+      throw new Error("Library is too large to save. Please delete some prompts.");
+    }
+
+    const res = await fetch(PROMPTS_GIST_URL, {
+      method: "PATCH",
+      headers: { ...ghHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ files: { "prompts.json": { content: payload } } }),
+    });
+
+    if (res.ok) {
+      return prompts; // success
+    }
+
+    lastError = `Attempt ${attempt + 1}/${MAX_RETRIES}: HTTP ${res.status}`;
+    if (attempt < MAX_RETRIES - 1) {
+      // Wait before retry: 500ms * attempt + random jitter
+      const jitter = Math.random() * 300;
+      await new Promise((r) => setTimeout(r, 500 * (attempt + 1) + jitter));
     }
   }
-  return { ok: false, error: lastError };
+
+  throw new Error(`Save failed after ${MAX_RETRIES} attempts: ${lastError}`);
 }
 
-// GET /api/prompts — anyone can read (guest too)
+// GET /api/prompts
 export async function GET() {
-  const prompts = await getPrompts();
-  return NextResponse.json(prompts);
+  const prompts = await readPrompts();
+  return NextResponse.json(prompts ?? []);
 }
 
-// POST /api/prompts — logged-in users only
+// POST /api/prompts
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session) {
-    return NextResponse.json({ error: "Login required" }, { status: 401 });
-  }
+  if (!session) return NextResponse.json({ error: "Login required" }, { status: 401 });
 
-  let body: { action: string; prompt?: Partial<SavedPrompt> };
+  let body: { action: string; prompt?: Partial<SavedPrompt> & { id?: string } };
   try {
     body = await req.json();
   } catch {
@@ -81,69 +133,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Prompt ID is required" }, { status: 400 });
   }
 
-  // ── SAVE: create new prompt ─────────────────────────────────────────────────
-  if (action === "save") {
-    if (!prompt.plainText) {
-      return NextResponse.json({ error: "plainText is required" }, { status: 400 });
-    }
-    const newPrompt: SavedPrompt = {
-      id: prompt.id || (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
-      plainText: prompt.plainText,
-      jsonText: prompt.jsonText || JSON.stringify({ text: prompt.plainText, language: prompt.language || "eng", confidence: 0, format: "plain" }, null, 2),
-      imageThumbnail: prompt.imageThumbnail || "",
-      language: prompt.language || "eng",
-      confidence: prompt.confidence ?? 0,
-      createdAt: new Date().toISOString(),
-      userId: session.user.id,
-      userName: session.user.username,
-    };
-    const prompts = await getPrompts();
-    prompts.unshift(newPrompt);
-    const result = await writePrompts(prompts);
-    if (!result.ok) return NextResponse.json({ error: result.error || "Save failed" }, { status: 500 });
-    return NextResponse.json({ ok: true, saved: newPrompt });
-
-  // ── UPDATE: edit existing prompt ────────────────────────────────────────────
-  } else if (action === "update") {
-    const prompts = await getPrompts();
-    const idx = prompts.findIndex((p) => p.id === prompt.id);
-    if (idx === -1) {
-      return NextResponse.json({ error: "Prompt not found — it may have been deleted" }, { status: 404 });
-    }
-    if (prompts[idx].userId !== session.user.id && session.user.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    // Preserve immutable fields from the stored prompt
-    const stored = prompts[idx];
-    prompts[idx] = {
-      ...stored,
-      ...prompt,
-      id: stored.id,
-      userId: stored.userId,
-      userName: stored.userName,
-      createdAt: stored.createdAt,
-    };
-    const result = await writePrompts(prompts);
-    if (!result.ok) return NextResponse.json({ error: result.error || "Update failed" }, { status: 500 });
-    return NextResponse.json({ ok: true, updated: prompts[idx] });
-
-  // ── DELETE: remove prompt ───────────────────────────────────────────────────
-  } else if (action === "delete") {
-    const prompts = await getPrompts();
-    const idx = prompts.findIndex((p) => p.id === prompt.id);
-    if (idx === -1) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
-    }
-    if (prompts[idx].userId !== session.user.id && session.user.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    prompts.splice(idx, 1);
-    const result = await writePrompts(prompts);
-    if (!result.ok) return NextResponse.json({ error: result.error || "Delete failed" }, { status: 500 });
-    return NextResponse.json({ ok: true });
-
-  // ── INVALID ACTION ─────────────────────────────────────────────────────────
-  } else {
+  if (!["save", "update", "delete"].includes(action)) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  }
+
+  try {
+    const updated = await atomicWrite(action, prompt, session.user as { id: string; username: string; role: string });
+    return NextResponse.json({ ok: true, prompts: updated });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Server error";
+    console.error(`[POST /api/prompts] ${action} failed:`, message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
