@@ -40,13 +40,26 @@ async function readPrompts(): Promise<SavedPrompt[]> {
 
 // Safely write prompts — returns { ok: true } or { ok: false, error }
 async function writePromptsSafe(prompts: SavedPrompt[]): Promise<{ ok: boolean; error?: string }> {
-  const payload = JSON.stringify(prompts, null, 2);
+  // Guard: validate before stringify — refuse to write if not an array
+  if (!Array.isArray(prompts)) {
+    console.error("[writePromptsSafe] REJECTED: prompts is not an array:", typeof prompts);
+    return { ok: false, error: "Internal error: prompts is not an array. Save aborted." };
+  }
 
-  // Guard: if the resulting payload is NOT valid JSON (should never happen), refuse
+  let payload: string;
+  try {
+    payload = JSON.stringify(prompts, null, 2);
+  } catch {
+    console.error("[writePromptsSafe] REJECTED: JSON.stringify threw");
+    return { ok: false, error: "Failed to serialize prompts. Save aborted." };
+  }
+
+  // Double-guard: re-parse to confirm it's valid JSON
   try {
     JSON.parse(payload);
   } catch {
-    return { ok: false, error: "Failed to serialize prompts. Data too large or malformed." };
+    console.error("[writePromptsSafe] REJECTED: output was not valid JSON");
+    return { ok: false, error: "Save aborted: corrupted data." };
   }
 
   // Size guard — GitHub Gist has 8MB soft limit
@@ -103,6 +116,10 @@ export async function POST(req: NextRequest) {
 
   if (action === "save") {
     if (!prompt.plainText) return NextResponse.json({ error: "plainText is required" }, { status: 400 });
+    // Validate: imageThumbnail must be empty string or a data URL
+    if (prompt.imageThumbnail && !prompt.imageThumbnail.startsWith("data:image/")) {
+      return NextResponse.json({ error: "Invalid image data. Please re-upload the image." }, { status: 400 });
+    }
     const newPrompt: SavedPrompt = {
       id: prompt.id || (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`),
       plainText: prompt.plainText,
